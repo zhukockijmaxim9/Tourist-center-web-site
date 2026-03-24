@@ -3,7 +3,9 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "dev:backend": "php artisan serve",
+        "start": "concurrently \"npm run dev\" \"npm run dev:backend\""
     },
     "devDependencies": {
         "@vitejs/plugin-react": "^5.2.0",

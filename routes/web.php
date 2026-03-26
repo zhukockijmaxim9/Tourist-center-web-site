@@ -1,70 +1,24 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\LeadController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\CategoryController;
-
 
 // =====================
-// Auth
+// API Routes
 // =====================
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout']);
-Route::get('/user', [AuthController::class, 'user']);
-
-// =====================
-// Services (публичный список + CRUD для админа)
-// =====================
-Route::get('/api/services', [ServiceController::class, 'index']);
-Route::get('/api/services/{service}', [ServiceController::class, 'show']);
-Route::post('/api/leads', [LeadController::class, 'store']);
-
-// =====================
-// Categories (публичный список + CRUD для админа)
-// =====================
-Route::get('/api/categories', [CategoryController::class, 'index']);
-Route::get('/api/categories/{category}', [CategoryController::class, 'show']);
-
-Route::middleware('auth')->group(function () {
-    // Admin-only service management
-    Route::middleware('admin')->group(function () {
-        Route::post('/api/services', [ServiceController::class, 'store']);
-        Route::put('/api/services/{service}', [ServiceController::class, 'update']);
-        Route::delete('/api/services/{service}', [ServiceController::class, 'destroy']);
-
-        // Admin-only category management
-        Route::post('/api/categories', [CategoryController::class, 'store']);
-        Route::put('/api/categories/{category}', [CategoryController::class, 'update']);
-        Route::delete('/api/categories/{category}', [CategoryController::class, 'destroy']);
-    });
-
-    // =====================
-    // Leads (auth users)
-    // =====================
-    Route::get('/api/leads', [LeadController::class, 'index']);
-    Route::get('/api/leads/{lead}', [LeadController::class, 'show']);
-    Route::put('/api/leads/{lead}', [LeadController::class, 'update']);
-    Route::delete('/api/leads/{lead}', [LeadController::class, 'destroy']);
-
-    // =====================
-    // Users (admin only)
-    // =====================
-    Route::middleware('admin')->group(function () {
-        Route::get('/api/users', [UserController::class, 'index']);
-        Route::post('/api/users', [UserController::class, 'store']);
-        Route::get('/api/users/{user}', [UserController::class, 'show']);
-        Route::put('/api/users/{user}', [UserController::class, 'update']);
-        Route::delete('/api/users/{user}', [UserController::class, 'destroy']);
-    });
+Route::prefix('api')->group(function () {
+    // Auth
+    require __DIR__.'/auth.php';
+    
+    // Admin Routes
+    require __DIR__.'/admin.php';
+    
+    // Public & User Routes
+    require __DIR__.'/api_v1.php';
 });
 
 // =====================
-// SPA catch-all — возвращает React frontend
+// SPA catch-all — returns React frontend (ONLY for GET requests)
 // =====================
-Route::get('/{any}', function () {
+Route::get('/{any?}', function () {
     return file_get_contents(base_path('frontend/index.html'));
-})->where('any', '^(?!api).*$');
+})->where('any', '.*')->name('spa.fallback');

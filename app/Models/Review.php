@@ -4,22 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Lead extends Model
+class Review extends Model
 {
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'message',
-        'service_id',
         'user_id',
-        'status',
+        'service_id',
+        'rating',
+        'comment',
+        'is_approved',
     ];
-
-    public function notes()
-    {
-        return $this->hasMany(LeadNote::class);
-    }
 
     public function user()
     {

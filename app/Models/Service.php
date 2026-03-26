@@ -15,6 +15,11 @@ class Service extends Model
         'status',
     ];
 
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);

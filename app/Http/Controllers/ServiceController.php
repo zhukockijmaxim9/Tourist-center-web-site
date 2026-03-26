@@ -31,7 +31,9 @@ class ServiceController extends Controller
 
     public function show(Service $service)
     {
-        return response()->json($service);
+        return response()->json($service->load(['category', 'reviews' => function($q) {
+            $q->where('is_approved', true)->with('user');
+        }]));
     }
 
     public function update(Request $request, Service $service)

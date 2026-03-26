@@ -11,10 +11,10 @@ const api = axios.create({
 
 // ── Auth ──
 export const authApi = {
-    login: (data) => api.post('/login', data),
-    register: (data) => api.post('/register', data),
-    logout: () => api.post('/logout'),
-    getUser: () => api.get('/user'),
+    login: (data) => api.post('/api/login', data),
+    register: (data) => api.post('/api/register', data),
+    logout: () => api.post('/api/logout'),
+    getUser: () => api.get('/api/user'),
 };
 
 // ── Services ──
@@ -33,6 +33,25 @@ export const leadsApi = {
     create: (data) => api.post('/api/leads', data),
     update: (id, data) => api.put(`/api/leads/${id}`, data),
     delete: (id) => api.delete(`/api/leads/${id}`),
+    addNote: (id, data) => api.post(`/api/leads/${id}/notes`, data),
+    getNotes: (id) => api.get(`/api/leads/${id}/notes`),
+};
+
+// ── Categories ──
+export const categoriesApi = {
+    getAll: () => api.get('/api/categories'),
+    getOne: (id) => api.get(`/api/categories/${id}`),
+    create: (data) => api.post('/api/categories', data),
+    update: (id, data) => api.put(`/api/categories/${id}`, data),
+    delete: (id) => api.delete(`/api/categories/${id}`),
+};
+
+// ── Reviews ──
+export const reviewsApi = {
+    getAll: () => api.get('/api/reviews'), // Admin only moderation
+    create: (data) => api.post('/api/reviews', data),
+    approve: (id) => api.put(`/api/reviews/${id}/approve`),
+    delete: (id) => api.delete(`/api/reviews/${id}`),
 };
 
 // ── Users ──

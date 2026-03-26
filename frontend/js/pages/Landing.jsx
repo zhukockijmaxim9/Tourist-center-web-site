@@ -1,20 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { servicesApi, leadsApi } from '../api';
+import { servicesApi, leadsApi, categoriesApi, reviewsApi } from '../api';
 import Modal from '../components/Modal';
 
 export default function Landing() {
     const { user } = useAuth();
     const [services, setServices] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [showServiceModal, setShowServiceModal] = useState(false);
+    const [selectedService, setSelectedService] = useState(null);
+    const [serviceDetails, setServiceDetails] = useState(null);
     const [form, setForm] = useState({ name: '', email: '', phone: '', message: '', service_id: '' });
+    const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
         servicesApi.getAll().then(res => setServices(res.data)).catch(() => {});
+        categoriesApi.getAll().then(res => setCategories(res.data)).catch(() => {});
     }, []);
+
+    const openServiceDetails = async (service) => {
+        setSelectedService(service);
+        try {
+            const res = await servicesApi.getOne(service.id);
+            setServiceDetails(res.data);
+            setShowServiceModal(true);
+        } catch { /* */ }
+    };
+
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await reviewsApi.create({
+                service_id: selectedService.id,
+                ...reviewForm
+            });
+            alert('Спасибо! Ваш отзыв отправлен на модерацию.');
+            setReviewForm({ rating: 5, comment: '' });
+        } catch { alert('Ошибка при отправке отзыва'); }
+    };
 
     const openCreate = (service) => {
         setForm({
@@ -90,14 +118,40 @@ export default function Landing() {
                 </div>
             </section>
 
+            {/* Categories Filter */}
+            {categories.length > 0 && (
+                <div className="container" style={{ marginBottom: '2rem' }}>
+                    <div className="category-tabs" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        <button 
+                            className={`btn ${selectedCategory === null ? 'btn-primary' : 'btn-outline'}`}
+                            onClick={() => setSelectedCategory(null)}
+                        >
+                            Все
+                        </button>
+                        {categories.map(c => (
+                            <button 
+                                key={c.id}
+                                className={`btn ${selectedCategory === c.id ? 'btn-primary' : 'btn-outline'}`}
+                                onClick={() => setSelectedCategory(c.id)}
+                            >
+                                {c.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Services */}
             {services.length > 0 && (
                 <section className="section">
                     <h2 className="section-title">Наши услуги</h2>
                     <div className="services-grid">
-                        {services.map((s) => (
-                            <div key={s.id} className="service-card">
+                        {services.filter(s => !selectedCategory || s.category_id === selectedCategory).map((s) => (
+                            <div key={s.id} className="service-card" onClick={() => openServiceDetails(s)} style={{ cursor: 'pointer' }}>
                                 <div className="service-card-icon">🌍</div>
+                                <div className="service-category" style={{ fontSize: '0.8rem', color: '#666' }}>
+                                    {s.category?.name || 'Без категории'}
+                                </div>
                                 <h3>{s.name}</h3>
                                 <p>{s.description || 'Описание скоро появится'}</p>
                                 {s.price && (
@@ -112,9 +166,9 @@ export default function Landing() {
                                     {s.status === 'active' && (
                                         <button 
                                             className="btn btn-primary btn-sm"
-                                            onClick={() => openCreate(s)}
+                                            onClick={(e) => { e.stopPropagation(); openCreate(s); }}
                                         >
-                                            Оставить заявку
+                                            Заказать
                                         </button>
                                     )}
                                 </div>
@@ -175,6 +229,63 @@ export default function Landing() {
                             </button>
                         </form>
                     </>
+                )}
+            </Modal>
+
+            {/* Service Details & Reviews Modal */}
+            <Modal
+                isOpen={showServiceModal}
+                onClose={() => setShowServiceModal(false)}
+                title={serviceDetails?.name}
+            >
+                {serviceDetails && (
+                    <div className="service-details">
+                        <p>{serviceDetails.description}</p>
+                        <hr />
+                        <h4>Отзывы клиентов</h4>
+                        <div className="reviews-list" style={{ maxHeight: '250px', overflowY: 'auto', marginBottom: '1.5rem' }}>
+                            {serviceDetails.reviews?.length === 0 && <p className="text-muted">Отзывов пока нет. Будьте первым!</p>}
+                            {serviceDetails.reviews?.map(r => (
+                                <div key={r.id} className="review-item" style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', marginBottom: '0.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <strong>{r.user?.name}</strong>
+                                        <span style={{ color: '#f39c12' }}>{'⭐'.repeat(r.rating)}</span>
+                                    </div>
+                                    <p style={{ margin: '0.5rem 0 0', fontSize: '0.9rem' }}>{r.comment}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {user ? (
+                            <form onSubmit={handleReviewSubmit} style={{ borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+                                <h5>Оставить отзыв</h5>
+                                <div className="form-group">
+                                    <label>Оценка</label>
+                                    <select value={reviewForm.rating} onChange={(e) => setReviewForm({...reviewForm, rating: e.target.value})}>
+                                        {[5,4,3,2,1].map(v => <option key={v} value={v}>{v} ⭐</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Комментарий</label>
+                                    <textarea 
+                                        value={reviewForm.comment} 
+                                        onChange={(e) => setReviewForm({...reviewForm, comment: e.target.value})}
+                                        rows={2}
+                                        placeholder="Поделитесь вашим мнением..."
+                                    />
+                                </div>
+                                <button type="submit" className="btn btn-outline btn-block">Отправить</button>
+                            </form>
+                        ) : (
+                            <p className="text-muted small">Пожалуйста, <Link to="/login">войдите</Link>, чтобы оставить отзыв.</p>
+                        )}
+                        
+                        <div style={{ marginTop: '1.5rem' }}>
+                            <button className="btn btn-primary btn-block" onClick={() => { setShowServiceModal(false); openCreate(serviceDetails); }}>
+                                Заказать эту услугу
+                            </button>
+                        </div>
+                    </div>
                 )}
             </Modal>
         </div>

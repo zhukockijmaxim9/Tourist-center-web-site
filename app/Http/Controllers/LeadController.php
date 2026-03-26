@@ -70,4 +70,24 @@ class LeadController extends Controller
         $lead->delete();
         return response()->json(['message' => 'Заявка удалена']);
     }
+
+    public function addNote(Request $request, Lead $lead)
+    {
+        $validated = $request->validate([
+            'note' => 'required|string',
+        ]);
+
+        $note = LeadNote::create([
+            'lead_id' => $lead->id,
+            'user_id' => Auth::id(),
+            'note' => $validated['note'],
+        ]);
+
+        return response()->json($note->load('user'), 201);
+    }
+
+    public function getNotes(Lead $lead)
+    {
+        return response()->json($lead->notes()->with('user')->get());
+    }
 }

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { usersApi, servicesApi, leadsApi } from '../api';
+import { usersApi, servicesApi, leadsApi, categoriesApi, reviewsApi } from '../api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 
 const TABS = [
     { key: 'users', label: '👥 Пользователи' },
     { key: 'services', label: '🌍 Услуги' },
+    { key: 'categories', label: '📁 Категории' },
     { key: 'leads', label: '📋 Заявки' },
+    { key: 'reviews', label: '⭐ Отзывы' },
 ];
 
 export default function AdminDashboard() {
@@ -14,6 +16,9 @@ export default function AdminDashboard() {
     const [users, setUsers] = useState([]);
     const [services, setServices] = useState([]);
     const [leads, setLeads] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [reviews, setReviews] = useState([]);
+    const [leadNotes, setLeadNotes] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState({});
@@ -23,14 +28,18 @@ export default function AdminDashboard() {
 
     const loadAll = async () => {
         try {
-            const [u, s, l] = await Promise.all([
+            const [u, s, l, c, r] = await Promise.all([
                 usersApi.getAll(),
                 servicesApi.getAll(),
                 leadsApi.getAll(),
+                categoriesApi.getAll(),
+                reviewsApi.getAll(),
             ]);
             setUsers(u.data);
             setServices(s.data);
             setLeads(l.data);
+            setCategories(c.data);
+            setReviews(r.data);
         } catch { /* */ }
     };
 
@@ -96,6 +105,7 @@ export default function AdminDashboard() {
     const serviceColumns = [
         { key: 'id', label: 'ID' },
         { key: 'name', label: 'Название' },
+        { key: 'category', label: 'Категория', render: (v) => v?.name || '—' },
         { key: 'description', label: 'Описание', render: (v) => v ? (v.length > 50 ? v.slice(0, 50) + '…' : v) : '—' },
         { key: 'price', label: 'Цена', render: (v) => v ? `${Number(v).toLocaleString('ru-RU')} ₽` : '—' },
         {
@@ -107,14 +117,14 @@ export default function AdminDashboard() {
 
     const openServiceCreate = () => {
         setEditing(null);
-        setForm({ name: '', description: '', price: '', image: '', status: 'active' });
+        setForm({ name: '', description: '', price: '', image: '', status: 'active', category_id: '' });
         setError('');
         setShowModal(true);
     };
 
     const openServiceEdit = (s) => {
         setEditing(s);
-        setForm({ name: s.name, description: s.description || '', price: s.price || '', image: s.image || '', status: s.status });
+        setForm({ name: s.name, description: s.description || '', price: s.price || '', image: s.image || '', status: s.status, category_id: s.category_id || '' });
         setError('');
         setShowModal(true);
     };
@@ -138,6 +148,64 @@ export default function AdminDashboard() {
     const deleteService = async (s) => {
         if (!confirm(`Удалить услугу "${s.name}"?`)) return;
         await servicesApi.delete(s.id);
+        loadAll();
+    };
+
+    // ─── Categories ─────────────────────────────────
+    const categoryColumns = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Название' },
+        { key: 'description', label: 'Описание' },
+    ];
+
+    const openCategoryCreate = () => {
+        setEditing(null);
+        setForm({ name: '', description: '' });
+        setError('');
+        setShowModal(true);
+    };
+
+    const openCategoryEdit = (c) => {
+        setEditing(c);
+        setForm({ name: c.name, description: c.description || '' });
+        setError('');
+        setShowModal(true);
+    };
+
+    const submitCategory = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            if (editing) {
+                await categoriesApi.update(editing.id, form);
+            } else {
+                await categoriesApi.create(form);
+            }
+            setShowModal(false);
+            loadAll();
+        } catch (err) {
+            handleError(err);
+        }
+    };
+
+    const deleteCategory = async (c) => {
+        if (!confirm(`Удалить категорию "${c.name}"? Это может отвязать услуги.`)) return;
+        await categoriesApi.delete(c.id);
+        loadAll();
+    };
+
+    // ─── Reviews ────────────────────────────────────
+    const reviewColumns = [
+        { key: 'id', label: 'ID' },
+        { key: 'service', label: 'Услуга', render: (v) => v?.name },
+        { key: 'user', label: 'Автор', render: (v) => v?.name },
+        { key: 'rating', label: 'Оценка', render: (v) => '⭐'.repeat(v) },
+        { key: 'comment', label: 'Комментарий' },
+    ];
+
+    const deleteReview = async (r) => {
+        if (!confirm('Удалить отзыв?')) return;
+        await reviewsApi.delete(r.id);
         loadAll();
     };
 
@@ -169,7 +237,7 @@ export default function AdminDashboard() {
         { key: 'created_at', label: 'Дата', render: (v) => new Date(v).toLocaleDateString('ru-RU') },
     ];
 
-    const openLeadEdit = (l) => {
+    const openLeadEdit = async (l) => {
         setEditing(l);
         setForm({
             name: l.name,
@@ -178,9 +246,25 @@ export default function AdminDashboard() {
             message: l.message || '',
             service_id: l.service_id || '',
             status: l.status,
+            note: '',
         });
         setError('');
         setShowModal(true);
+        // Load notes
+        try {
+            const res = await leadsApi.getNotes(l.id);
+            setLeadNotes(res.data);
+        } catch { setLeadNotes([]); }
+    };
+
+    const addLeadNote = async () => {
+        if (!form.note) return;
+        try {
+            await leadsApi.addNote(editing.id, { note: form.note });
+            setForm({ ...form, note: '' });
+            const res = await leadsApi.getNotes(editing.id);
+            setLeadNotes(res.data);
+        } catch (err) { handleError(err); }
     };
 
     const submitLead = async (e) => {
@@ -280,6 +364,27 @@ export default function AdminDashboard() {
                 </section>
             )}
 
+            {/* Categories Tab */}
+            {tab === 'categories' && (
+                <section className="dashboard-section">
+                    <div className="section-header">
+                        <h2>Категории ({categories.length})</h2>
+                        <button className="btn btn-primary" onClick={openCategoryCreate}>+ Добавить</button>
+                    </div>
+                    <DataTable columns={categoryColumns} data={categories} onEdit={openCategoryEdit} onDelete={deleteCategory} />
+                </section>
+            )}
+
+            {/* Reviews Tab */}
+            {tab === 'reviews' && (
+                <section className="dashboard-section">
+                    <div className="section-header">
+                        <h2>Отзывы ({reviews.length})</h2>
+                    </div>
+                    <DataTable columns={reviewColumns} data={reviews} onDelete={deleteReview} />
+                </section>
+            )}
+
             {/* Leads Tab */}
             {tab === 'leads' && (
                 <section className="dashboard-section">
@@ -353,6 +458,13 @@ export default function AdminDashboard() {
                                 <input type="number" step="0.01" value={form.price || ''} onChange={(e) => update('price', e.target.value)} />
                             </div>
                             <div className="form-group">
+                                <label>Категория</label>
+                                <select value={form.category_id || ''} onChange={(e) => update('category_id', e.target.value)}>
+                                    <option value="">Без категории</option>
+                                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="form-group">
                                 <label>Статус</label>
                                 <select value={form.status || 'active'} onChange={(e) => update('status', e.target.value)}>
                                     <option value="active">active</option>
@@ -402,7 +514,51 @@ export default function AdminDashboard() {
                         </div>
                         <div className="form-group">
                             <label>Сообщение</label>
-                            <textarea value={form.message || ''} onChange={(e) => update('message', e.target.value)} rows={3} />
+                            <textarea value={form.message || ''} readOnly rows={2} />
+                        </div>
+
+                        {/* Notes Section */}
+                        <div className="notes-section" style={{ marginTop: '1.5rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+                            <h4>Внутренние заметки</h4>
+                            <div className="notes-list" style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '1rem' }}>
+                                {leadNotes.length === 0 && <p className="text-muted small">Заметок пока нет</p>}
+                                {leadNotes.map(n => (
+                                    <div key={n.id} className="note-item" style={{ fontSize: '0.9rem', marginBottom: '0.5rem', padding: '0.5rem', background: '#f8f9fa', borderRadius: '4px' }}>
+                                        <div style={{ fontWeight: 'bold' }}>{n.user?.name} <small style={{ fontWeight: 'normal' }}>{new Date(n.created_at).toLocaleString()}</small></div>
+                                        <div>{n.note}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="form-group">
+                                <textarea 
+                                    value={form.note || ''} 
+                                    onChange={(e) => update('note', e.target.value)} 
+                                    placeholder="Новая заметка..." 
+                                    rows={2}
+                                />
+                                <button type="button" className="btn btn-outline btn-sm" onClick={addLeadNote} style={{ marginTop: '0.5rem' }}>
+                                    Добавить заметку
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '1.5rem' }}>Сохранить статус</button>
+                    </form>
+                </Modal>
+            )}
+
+            {/* Category Modal */}
+            {tab === 'categories' && (
+                <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? 'Редактировать категорию' : 'Новая категория'}>
+                    {error && <div className="alert alert-error">{error}</div>}
+                    <form onSubmit={submitCategory}>
+                        <div className="form-group">
+                            <label>Название</label>
+                            <input value={form.name || ''} onChange={(e) => update('name', e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Описание</label>
+                            <textarea value={form.description || ''} onChange={(e) => update('description', e.target.value)} rows={3} />
                         </div>
                         <button type="submit" className="btn btn-primary btn-block">Сохранить</button>
                     </form>

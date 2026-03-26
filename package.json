@@ -3,7 +3,9 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "dev:backend": "php artisan serve",
+        "start": "concurrently \"npm run dev\" \"npm run dev:backend\""
     },
     "devDependencies": {
         "@vitejs/plugin-react": "^5.2.0",
@@ -14,5 +16,8 @@
         "react-dom": "^19.2.4",
         "sass-embedded": "^1.98.0",
         "vite": "^6.0.11"
+    },
+    "dependencies": {
+        "react-router-dom": "^7.13.2"
     }
 }

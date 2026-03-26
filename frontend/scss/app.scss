@@ -758,6 +758,26 @@ h3 { font-size: 1.8rem; }
     .services-grid {
         grid-template-columns: 1fr;
     }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .tabs {
+        flex-direction: column;
+    }
+
+    .navbar-inner {
+        padding: 0 1.6rem;
+    }
+
+    .auth-card {
+        padding: 2.4rem;
+    }
+
+    .dashboard {
+        padding: 2rem 1.6rem;
+    }
 }
 
 .button-group {
@@ -781,26 +801,5 @@ h3 { font-size: 1.8rem; }
         &:hover {
             background-color: #047857; // emerald-700
         }
-    }
-}
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .tabs {
-        flex-direction: column;
-    }
-
-    .navbar-inner {
-        padding: 0 1.6rem;
-    }
-
-    .auth-card {
-        padding: 2.4rem;
-    }
-
-    .dashboard {
-        padding: 2rem 1.6rem;
     }
 }

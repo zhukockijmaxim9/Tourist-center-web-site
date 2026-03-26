@@ -1,11 +1,11 @@
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --bg-color: #f3f4f6;
-    --text-color: #374151;
-    --text-muted: #6b7280;
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --bg-color: #0f172a;
+    --text-color: #f1f5f9;
+    --text-muted: #94a3b8;
     --white: #ffffff;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 html {
@@ -19,11 +19,11 @@ html {
 }
 
 body {
-    font-size: 1.6rem; /* 16px */
-    font-family: 'Figtree', sans-serif;
+    font-size: 1.6rem;
+    font-family: 'Figtree', 'Inter', system-ui, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    line-height: 1.5;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
 }
 

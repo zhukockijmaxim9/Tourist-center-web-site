@@ -1,0 +1,389 @@
+import React, { useState, useEffect } from 'react';
+import { usersApi, servicesApi, leadsApi } from '../api';
+import DataTable from '../components/DataTable';
+import Modal from '../components/Modal';
+
+const TABS = [
+    { key: 'users', label: '👥 Пользователи' },
+    { key: 'services', label: '🌍 Услуги' },
+    { key: 'leads', label: '📋 Заявки' },
+];
+
+export default function AdminDashboard() {
+    const [tab, setTab] = useState('users');
+    const [users, setUsers] = useState([]);
+    const [services, setServices] = useState([]);
+    const [leads, setLeads] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [editing, setEditing] = useState(null);
+    const [form, setForm] = useState({});
+    const [error, setError] = useState('');
+
+    useEffect(() => { loadAll(); }, []);
+
+    const loadAll = async () => {
+        try {
+            const [u, s, l] = await Promise.all([
+                usersApi.getAll(),
+                servicesApi.getAll(),
+                leadsApi.getAll(),
+            ]);
+            setUsers(u.data);
+            setServices(s.data);
+            setLeads(l.data);
+        } catch { /* */ }
+    };
+
+    const update = (key, val) => setForm({ ...form, [key]: val });
+
+    // ─── Users ──────────────────────────────────────
+    const userColumns = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Имя' },
+        { key: 'email', label: 'Email' },
+        { key: 'phone', label: 'Телефон' },
+        {
+            key: 'role',
+            label: 'Роль',
+            render: (val) => <span className={`badge badge-${val === 'admin' ? 'warning' : 'primary'}`}>{val}</span>,
+        },
+        {
+            key: 'status',
+            label: 'Статус',
+            render: (val) => <span className={`badge badge-${val === 'active' ? 'success' : 'muted'}`}>{val}</span>,
+        },
+    ];
+
+    const openUserCreate = () => {
+        setEditing(null);
+        setForm({ name: '', email: '', phone: '', password: '', role: 'user', status: 'active' });
+        setError('');
+        setShowModal(true);
+    };
+
+    const openUserEdit = (u) => {
+        setEditing(u);
+        setForm({ name: u.name, email: u.email, phone: u.phone || '', password: '', role: u.role, status: u.status });
+        setError('');
+        setShowModal(true);
+    };
+
+    const submitUser = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            const data = { ...form };
+            if (!data.password) delete data.password;
+            if (editing) {
+                await usersApi.update(editing.id, data);
+            } else {
+                await usersApi.create(data);
+            }
+            setShowModal(false);
+            loadAll();
+        } catch (err) {
+            handleError(err);
+        }
+    };
+
+    const deleteUser = async (u) => {
+        if (!confirm(`Удалить пользователя ${u.name}?`)) return;
+        await usersApi.delete(u.id);
+        loadAll();
+    };
+
+    // ─── Services ───────────────────────────────────
+    const serviceColumns = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Название' },
+        { key: 'description', label: 'Описание', render: (v) => v ? (v.length > 50 ? v.slice(0, 50) + '…' : v) : '—' },
+        { key: 'price', label: 'Цена', render: (v) => v ? `${Number(v).toLocaleString('ru-RU')} ₽` : '—' },
+        {
+            key: 'status',
+            label: 'Статус',
+            render: (val) => <span className={`badge badge-${val === 'active' ? 'success' : 'muted'}`}>{val}</span>,
+        },
+    ];
+
+    const openServiceCreate = () => {
+        setEditing(null);
+        setForm({ name: '', description: '', price: '', image: '', status: 'active' });
+        setError('');
+        setShowModal(true);
+    };
+
+    const openServiceEdit = (s) => {
+        setEditing(s);
+        setForm({ name: s.name, description: s.description || '', price: s.price || '', image: s.image || '', status: s.status });
+        setError('');
+        setShowModal(true);
+    };
+
+    const submitService = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            if (editing) {
+                await servicesApi.update(editing.id, form);
+            } else {
+                await servicesApi.create(form);
+            }
+            setShowModal(false);
+            loadAll();
+        } catch (err) {
+            handleError(err);
+        }
+    };
+
+    const deleteService = async (s) => {
+        if (!confirm(`Удалить услугу "${s.name}"?`)) return;
+        await servicesApi.delete(s.id);
+        loadAll();
+    };
+
+    // ─── Leads ──────────────────────────────────────
+    const leadColumns = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Имя' },
+        { key: 'email', label: 'Email' },
+        { key: 'phone', label: 'Телефон' },
+        {
+            key: 'service',
+            label: 'Услуга',
+            render: (val) => val?.name || '—',
+        },
+        {
+            key: 'user',
+            label: 'Пользователь',
+            render: (val) => val?.name || 'Гость',
+        },
+        {
+            key: 'status',
+            label: 'Статус',
+            render: (val) => (
+                <span className={`badge badge-${val === 'done' ? 'success' : val === 'cancelled' ? 'danger' : val === 'in_progress' ? 'warning' : 'primary'}`}>
+                    {val}
+                </span>
+            ),
+        },
+        { key: 'created_at', label: 'Дата', render: (v) => new Date(v).toLocaleDateString('ru-RU') },
+    ];
+
+    const openLeadEdit = (l) => {
+        setEditing(l);
+        setForm({
+            name: l.name,
+            email: l.email || '',
+            phone: l.phone,
+            message: l.message || '',
+            service_id: l.service_id || '',
+            status: l.status,
+        });
+        setError('');
+        setShowModal(true);
+    };
+
+    const submitLead = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            await leadsApi.update(editing.id, form);
+            setShowModal(false);
+            loadAll();
+        } catch (err) {
+            handleError(err);
+        }
+    };
+
+    const deleteLead = async (l) => {
+        if (!confirm('Удалить заявку?')) return;
+        await leadsApi.delete(l.id);
+        loadAll();
+    };
+
+    // ─── Error helper ───────────────────────────────
+    const handleError = (err) => {
+        const msg = err.response?.data?.errors;
+        if (typeof msg === 'object') {
+            setError(Object.values(msg).flat().join('. '));
+        } else {
+            setError(err.response?.data?.message || 'Ошибка');
+        }
+    };
+
+    // ─── Render ─────────────────────────────────────
+    return (
+        <div className="dashboard">
+            <div className="dashboard-header">
+                <div>
+                    <h1>Панель администратора</h1>
+                    <p className="text-muted">Управление пользователями, услугами и заявками</p>
+                </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="tabs">
+                {TABS.map((t) => (
+                    <button
+                        key={t.key}
+                        className={`tab ${tab === t.key ? 'tab-active' : ''}`}
+                        onClick={() => setTab(t.key)}
+                    >
+                        {t.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Users Tab */}
+            {tab === 'users' && (
+                <section className="dashboard-section">
+                    <div className="section-header">
+                        <h2>Пользователи ({users.length})</h2>
+                        <button className="btn btn-primary" onClick={openUserCreate}>+ Добавить</button>
+                    </div>
+                    <DataTable columns={userColumns} data={users} onEdit={openUserEdit} onDelete={deleteUser} />
+                </section>
+            )}
+
+            {/* Services Tab */}
+            {tab === 'services' && (
+                <section className="dashboard-section">
+                    <div className="section-header">
+                        <h2>Услуги ({services.length})</h2>
+                        <button className="btn btn-primary" onClick={openServiceCreate}>+ Добавить</button>
+                    </div>
+                    <DataTable columns={serviceColumns} data={services} onEdit={openServiceEdit} onDelete={deleteService} />
+                </section>
+            )}
+
+            {/* Leads Tab */}
+            {tab === 'leads' && (
+                <section className="dashboard-section">
+                    <div className="section-header">
+                        <h2>Заявки ({leads.length})</h2>
+                    </div>
+                    <DataTable columns={leadColumns} data={leads} onEdit={openLeadEdit} onDelete={deleteLead} />
+                </section>
+            )}
+
+            {/* ─── Modals ─── */}
+
+            {/* User Modal */}
+            {tab === 'users' && (
+                <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? 'Редактировать' : 'Новый пользователь'}>
+                    {error && <div className="alert alert-error">{error}</div>}
+                    <form onSubmit={submitUser}>
+                        <div className="form-group">
+                            <label>Имя</label>
+                            <input value={form.name || ''} onChange={(e) => update('name', e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input type="email" value={form.email || ''} onChange={(e) => update('email', e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Телефон</label>
+                            <input value={form.phone || ''} onChange={(e) => update('phone', e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                            <label>{editing ? 'Новый пароль (оставьте пустым)' : 'Пароль'}</label>
+                            <input type="password" value={form.password || ''} onChange={(e) => update('password', e.target.value)} {...(!editing ? { required: true } : {})} />
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Роль</label>
+                                <select value={form.role || 'user'} onChange={(e) => update('role', e.target.value)}>
+                                    <option value="user">user</option>
+                                    <option value="admin">admin</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>Статус</label>
+                                <select value={form.status || 'active'} onChange={(e) => update('status', e.target.value)}>
+                                    <option value="active">active</option>
+                                    <option value="inactive">inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" className="btn btn-primary btn-block">Сохранить</button>
+                    </form>
+                </Modal>
+            )}
+
+            {/* Service Modal */}
+            {tab === 'services' && (
+                <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? 'Редактировать' : 'Новая услуга'}>
+                    {error && <div className="alert alert-error">{error}</div>}
+                    <form onSubmit={submitService}>
+                        <div className="form-group">
+                            <label>Название</label>
+                            <input value={form.name || ''} onChange={(e) => update('name', e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Описание</label>
+                            <textarea value={form.description || ''} onChange={(e) => update('description', e.target.value)} rows={3} />
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Цена (₽)</label>
+                                <input type="number" step="0.01" value={form.price || ''} onChange={(e) => update('price', e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Статус</label>
+                                <select value={form.status || 'active'} onChange={(e) => update('status', e.target.value)}>
+                                    <option value="active">active</option>
+                                    <option value="inactive">inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" className="btn btn-primary btn-block">Сохранить</button>
+                    </form>
+                </Modal>
+            )}
+
+            {/* Lead Modal */}
+            {tab === 'leads' && (
+                <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Редактировать заявку">
+                    {error && <div className="alert alert-error">{error}</div>}
+                    <form onSubmit={submitLead}>
+                        <div className="form-group">
+                            <label>Имя</label>
+                            <input value={form.name || ''} onChange={(e) => update('name', e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input type="email" value={form.email || ''} onChange={(e) => update('email', e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                            <label>Телефон</label>
+                            <input value={form.phone || ''} onChange={(e) => update('phone', e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Услуга</label>
+                            <select value={form.service_id || ''} onChange={(e) => update('service_id', e.target.value)}>
+                                <option value="">—</option>
+                                {services.map((s) => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Статус</label>
+                            <select value={form.status || 'new'} onChange={(e) => update('status', e.target.value)}>
+                                <option value="new">new</option>
+                                <option value="in_progress">in_progress</option>
+                                <option value="done">done</option>
+                                <option value="cancelled">cancelled</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Сообщение</label>
+                            <textarea value={form.message || ''} onChange={(e) => update('message', e.target.value)} rows={3} />
+                        </div>
+                        <button type="submit" className="btn btn-primary btn-block">Сохранить</button>
+                    </form>
+                </Modal>
+            )}
+        </div>
+    );
+}

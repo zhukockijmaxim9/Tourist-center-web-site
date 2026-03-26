@@ -34,4 +34,9 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function leads()
+    {
+        return $this->hasMany(Lead::class);
+    }
 }

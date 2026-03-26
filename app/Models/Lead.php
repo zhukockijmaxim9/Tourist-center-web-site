@@ -14,8 +14,14 @@ class Lead extends Model
         'phone',
         'message',
         'service_id',
+        'user_id',
         'status',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function service()
     {

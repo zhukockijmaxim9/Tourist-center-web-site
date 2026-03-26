@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('phone');
             $table->text('message')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('service_id')->nullable()->constrained()->onDelete('set null');
             $table->string('status')->default('new');
             $table->timestamps();

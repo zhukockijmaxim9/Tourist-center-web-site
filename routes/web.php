@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CategoryController;
+
 
 // =====================
 // Auth
@@ -21,12 +23,23 @@ Route::get('/api/services', [ServiceController::class, 'index']);
 Route::get('/api/services/{service}', [ServiceController::class, 'show']);
 Route::post('/api/leads', [LeadController::class, 'store']);
 
+// =====================
+// Categories (публичный список + CRUD для админа)
+// =====================
+Route::get('/api/categories', [CategoryController::class, 'index']);
+Route::get('/api/categories/{category}', [CategoryController::class, 'show']);
+
 Route::middleware('auth')->group(function () {
     // Admin-only service management
     Route::middleware('admin')->group(function () {
         Route::post('/api/services', [ServiceController::class, 'store']);
         Route::put('/api/services/{service}', [ServiceController::class, 'update']);
         Route::delete('/api/services/{service}', [ServiceController::class, 'destroy']);
+
+        // Admin-only category management
+        Route::post('/api/categories', [CategoryController::class, 'store']);
+        Route::put('/api/categories/{category}', [CategoryController::class, 'update']);
+        Route::delete('/api/categories/{category}', [CategoryController::class, 'destroy']);
     });
 
     // =====================

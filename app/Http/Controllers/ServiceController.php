@@ -9,7 +9,7 @@ class ServiceController extends Controller
 {
     public function index()
     {
-        $services = Service::orderBy('created_at', 'desc')->get();
+        $services = Service::with('category')->orderBy('created_at', 'desc')->get();
         return response()->json($services);
     }
 
@@ -18,6 +18,7 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
             'price' => 'nullable|numeric|min:0',
             'image' => 'nullable|string',
             'status' => 'nullable|string|in:active,inactive',
@@ -38,6 +39,7 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
             'price' => 'nullable|numeric|min:0',
             'image' => 'nullable|string',
             'status' => 'nullable|string|in:active,inactive',

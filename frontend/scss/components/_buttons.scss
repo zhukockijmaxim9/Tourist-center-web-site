@@ -1,0 +1,104 @@
+@use "../abstracts/variables" as *;
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1rem 2rem;
+    border-radius: $radius;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: $transition;
+    white-space: nowrap;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, $primary, $primary-dark);
+    color: white;
+    box-shadow: 0 2px 12px rgba($primary, 0.3);
+
+    &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 20px rgba($primary, 0.4);
+    }
+}
+
+.btn-outline {
+    background: transparent;
+    color: $text-secondary;
+    border: 1px solid $glass-border;
+
+    &:hover {
+        background: $bg-card-hover;
+        color: $text-primary;
+        border-color: $text-muted;
+    }
+}
+
+.btn-ghost {
+    background: transparent;
+    color: $text-secondary;
+
+    &:hover {
+        background: $bg-card-hover;
+        color: $text-primary;
+    }
+}
+
+.btn-danger {
+    background: rgba($danger, 0.15);
+    color: $danger;
+    border: 1px solid rgba($danger, 0.2);
+
+    &:hover {
+        background: rgba($danger, 0.25);
+    }
+}
+
+.btn-sm {
+    padding: 0.6rem 1rem;
+    font-size: 1.3rem;
+    border-radius: $radius-sm;
+}
+
+.btn-lg {
+    padding: 1.4rem 2.8rem;
+    font-size: 1.6rem;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem; // space-x-4
+}
+
+.btn {
+    &-emerald {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        transition: all 0.2s;
+        cursor: pointer;
+        font-size: 1rem;
+        text-decoration: none;
+        display: inline-block;
+        background-color: #059669; // emerald-600
+        color: #ffffff;
+        border: none;
+
+        &:hover {
+            background-color: #047857; // emerald-700
+        }
+    }
+}

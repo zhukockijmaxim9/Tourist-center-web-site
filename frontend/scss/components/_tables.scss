@@ -1,0 +1,61 @@
+@use "../abstracts/variables" as *;
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: $radius-lg;
+    border: 1px solid $glass-border;
+    background: $bg-card;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.4rem;
+
+    th {
+        padding: 1.4rem 1.6rem;
+        text-align: left;
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: $text-muted;
+        background: var(--table-header-bg);
+        border-bottom: 1px solid $glass-border;
+        white-space: nowrap;
+    }
+
+    td {
+        padding: 1.2rem 1.6rem;
+        border-bottom: 1px solid $glass-border;
+        color: $text-secondary;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover td {
+        background: var(--table-row-hover);
+    }
+}
+
+.actions-cell {
+    display: flex;
+    gap: 0.6rem;
+    white-space: nowrap;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: $text-muted;
+    font-size: 1.6rem;
+    background: $bg-card;
+    border-radius: $radius-lg;
+    border: 1px dashed $glass-border;
+}

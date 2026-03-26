@@ -1,0 +1,21 @@
+@use "../abstracts/variables" as *;
+
+h1, h2, h3 {
+    color: $text-primary;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h1 { font-size: 3.2rem; }
+h2 { font-size: 2.4rem; }
+h3 { font-size: 1.8rem; }
+
+.text-muted { color: $text-secondary; }
+.accent { color: $accent; }
+
+.title {
+    font-size: 1.875rem; // text-3xl
+    font-weight: 700; // font-bold
+    color: #111827; // gray-900
+    margin-bottom: 1rem; // mb-4
+}

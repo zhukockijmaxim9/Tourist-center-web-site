@@ -1,0 +1,43 @@
+@use "../abstracts/variables" as *;
+
+.auth-page {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2.4rem;
+}
+
+.auth-card {
+    background: $bg-card;
+    border: 1px solid $glass-border;
+    border-radius: $radius-xl;
+    padding: 4rem;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: $shadow-lg;
+
+    h1 {
+        font-size: 2.8rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .auth-subtitle {
+        color: $text-secondary;
+        margin-bottom: 2.4rem;
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 2rem;
+        color: $text-secondary;
+        font-size: 1.4rem;
+
+        a {
+            color: $primary-light;
+            text-decoration: none;
+
+            &:hover { text-decoration: underline; }
+        }
+    }
+}

@@ -1,0 +1,121 @@
+@use "../abstracts/variables" as *;
+
+// ─── Badges ─────────────────────────────────────────
+.badge {
+    display: inline-block;
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-primary { background: rgba($primary, 0.15); color: $primary-light; }
+.badge-success { background: rgba($success, 0.15); color: $success; }
+.badge-warning { background: rgba($warning, 0.15); color: $warning; }
+.badge-danger { background: rgba($danger, 0.15); color: $danger; }
+.badge-muted { background: rgba($muted, 0.15); color: $muted; }
+
+// ─── Alerts ─────────────────────────────────────────
+.alert {
+    padding: 1.2rem 1.6rem;
+    border-radius: $radius;
+    font-size: 1.4rem;
+    margin-bottom: 1.6rem;
+}
+
+.alert-error {
+    background: rgba($danger, 0.12);
+    border: 1px solid rgba($danger, 0.2);
+    color: $danger;
+}
+
+.alert-success {
+    background: rgba($success, 0.12);
+    border: 1px solid rgba($success, 0.2);
+    color: $primary-dark;
+}
+
+// ─── Modal ──────────────────────────────────────────
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: $bg-overlay;
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    background: $bg-card;
+    border: 1px solid $glass-border;
+    border-radius: $radius-xl;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: $shadow-lg;
+    animation: slideUp 0.25s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2.4rem 2.4rem 0;
+
+    h2 { font-size: 2rem; }
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: $text-muted;
+    font-size: 2.8rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: $transition;
+
+    &:hover { color: $text-primary; }
+}
+
+.modal-body {
+    padding: 2rem 2.4rem 2.4rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+// ─── Loading ────────────────────────────────────────
+.loading-screen {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid $glass-border;
+    border-top-color: $primary;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

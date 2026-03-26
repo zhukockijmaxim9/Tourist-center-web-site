@@ -1,0 +1,28 @@
+@use "../abstracts/variables" as *;
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 62.5%;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-size: 1.6rem;
+    font-family: 'Figtree', 'Inter', system-ui, sans-serif;
+    background: $bg-dark;
+    color: $text-primary;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}

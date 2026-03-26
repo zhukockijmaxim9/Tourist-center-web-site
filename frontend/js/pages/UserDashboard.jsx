@@ -108,15 +108,18 @@ export default function UserDashboard() {
 
     return (
         <div className="dashboard">
-            <div className="dashboard-header">
-                <div>
-                    <h1>Личный кабинет</h1>
-                    <p className="text-muted">Добро пожаловать, {user?.name}!</p>
+            <div className="welcome-banner animate-in">
+                <div className="welcome-content">
+                    <h1>С возвращением, {user?.name}! 👋</h1>
+                    <p>
+                        Рады видеть вас снова. Здесь вы можете просмотреть доступные услуги 
+                        и управлять вашими заявками.
+                    </p>
                 </div>
             </div>
 
             {/* Services */}
-            <section className="dashboard-section">
+            <section className="dashboard-section animate-in" style={{ animationDelay: '0.1s' }}>
                 <h2>Доступные услуги</h2>
                 <div className="services-grid">
                     {services.map((s) => (
@@ -131,7 +134,7 @@ export default function UserDashboard() {
             </section>
 
             {/* Leads */}
-            <section className="dashboard-section">
+            <section className="dashboard-section animate-in" style={{ animationDelay: '0.2s' }}>
                 <div className="section-header">
                     <h2>Мои заявки</h2>
                     <button className="btn btn-primary" onClick={openCreate}>+ Новая заявка</button>

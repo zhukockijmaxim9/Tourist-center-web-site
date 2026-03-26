@@ -5,6 +5,8 @@
     border-radius: $radius-lg;
     border: 1px solid $glass-border;
     background: $bg-card;
+    box-shadow: $shadow;
+    backdrop-filter: blur(10px);
 }
 
 .data-table {

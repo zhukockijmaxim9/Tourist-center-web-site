@@ -214,10 +214,34 @@ export default function AdminDashboard() {
     // ─── Render ─────────────────────────────────────
     return (
         <div className="dashboard">
-            <div className="dashboard-header">
+            <div className="dashboard-header animate-in">
                 <div>
                     <h1>Панель администратора</h1>
                     <p className="text-muted">Управление пользователями, услугами и заявками</p>
+                </div>
+            </div>
+
+            <div className="stats-grid animate-in" style={{ animationDelay: '0.1s' }}>
+                <div className="stats-card">
+                    <div className="stats-card-icon">👥</div>
+                    <div className="stats-card-info">
+                        <span className="stats-value">{users.length}</span>
+                        <span className="stats-label">Пользователей</span>
+                    </div>
+                </div>
+                <div className="stats-card">
+                    <div className="stats-card-icon">🌍</div>
+                    <div className="stats-card-info">
+                        <span className="stats-value">{services.length}</span>
+                        <span className="stats-label">Услуг</span>
+                    </div>
+                </div>
+                <div className="stats-card">
+                    <div className="stats-card-icon">📋</div>
+                    <div className="stats-card-info">
+                        <span className="stats-value">{leads.length}</span>
+                        <span className="stats-label">Заявок</span>
+                    </div>
                 </div>
             </div>
 

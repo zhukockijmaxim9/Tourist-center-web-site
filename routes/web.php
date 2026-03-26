@@ -19,6 +19,7 @@ Route::get('/user', [AuthController::class, 'user']);
 // =====================
 Route::get('/api/services', [ServiceController::class, 'index']);
 Route::get('/api/services/{service}', [ServiceController::class, 'show']);
+Route::post('/api/leads', [LeadController::class, 'store']);
 
 Route::middleware('auth')->group(function () {
     // Admin-only service management
@@ -32,7 +33,6 @@ Route::middleware('auth')->group(function () {
     // Leads (auth users)
     // =====================
     Route::get('/api/leads', [LeadController::class, 'index']);
-    Route::post('/api/leads', [LeadController::class, 'store']);
     Route::get('/api/leads/{lead}', [LeadController::class, 'show']);
     Route::put('/api/leads/{lead}', [LeadController::class, 'update']);
     Route::delete('/api/leads/{lead}', [LeadController::class, 'destroy']);

@@ -122,6 +122,14 @@
         margin-bottom: 1.2rem;
         line-height: 1.5;
     }
+
+    .service-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 1.6rem;
+        gap: 1rem;
+    }
 }
 
 .service-card-sm {

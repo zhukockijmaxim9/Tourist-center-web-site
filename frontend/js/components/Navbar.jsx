@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -20,6 +22,9 @@ export default function Navbar() {
                 </Link>
 
                 <div className="navbar-actions">
+                    <button onClick={toggleTheme} className="btn btn-ghost" title="Сменить тему" style={{ fontSize: '1.2rem', padding: '0.6rem 1rem' }}>
+                        {theme === 'light' ? '🌙' : '☀️'}
+                    </button>
                     {user ? (
                         <>
                             <Link

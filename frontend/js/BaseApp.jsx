@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -63,7 +64,9 @@ const App = () => {
     return (
         <BrowserRouter>
             <AuthProvider>
-                <AppRoutes />
+                <ThemeProvider>
+                    <AppRoutes />
+                </ThemeProvider>
             </AuthProvider>
         </BrowserRouter>
     );

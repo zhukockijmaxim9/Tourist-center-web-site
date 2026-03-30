@@ -152,29 +152,35 @@ export default function Landing() {
                     <div className="services-grid">
                         {services.filter(s => !selectedCategory || s.category_id === selectedCategory).map((s) => (
                             <div key={s.id} className="service-card" onClick={() => openServiceDetails(s)} style={{ cursor: 'pointer' }}>
-                                <div className="service-card-icon">🌍</div>
-                                <div className="service-category" style={{ fontSize: '1rem', color: '#555', fontWeight: '500', marginBottom: '0.4rem' }}>
-                                    {s.category?.name || 'Без категории'}
-                                </div>
-                                <h3>{s.name}</h3>
-                                <p>{s.description || 'Описание скоро появится'}</p>
-                                {s.price && (
-                                    <div className="service-price">
-                                        {Number(s.price).toLocaleString('ru-RU')} ₽
-                                    </div>
-                                )}
-                                <div className="service-card-footer">
-                                    <span className={`badge badge-${s.status === 'active' ? 'success' : 'muted'}`}>
-                                        {s.status === 'active' ? 'Доступно' : 'Недоступно'}
+                                <div className="service-card-header">
+                                    <div className="service-card-icon">🌍</div>
+                                    <span className="service-category-badge">
+                                        {s.category?.name || 'Без категории'}
                                     </span>
-                                    {s.status === 'active' && (
-                                        <button 
-                                            className="btn btn-primary btn-sm"
-                                            onClick={(e) => { e.stopPropagation(); openCreate(s); }}
-                                        >
-                                            Заказать
-                                        </button>
+                                </div>
+                                <div className="service-card-body">
+                                    <h3>{s.name}</h3>
+                                    <p>{s.description || 'Описание скоро появится'}</p>
+                                </div>
+                                <div className="service-card-footer">
+                                    {s.price && (
+                                        <div className="service-price">
+                                            {Number(s.price).toLocaleString('ru-RU')} ₽
+                                        </div>
                                     )}
+                                    <div className="service-card-actions">
+                                        <span className={`badge badge-${s.status === 'active' ? 'success' : 'muted'}`}>
+                                            {s.status === 'active' ? 'Доступно' : 'Недоступно'}
+                                        </span>
+                                        {s.status === 'active' && (
+                                            <button
+                                                className="btn btn-primary btn-sm"
+                                                onClick={(e) => { e.stopPropagation(); openCreate(s); }}
+                                            >
+                                                Заказать
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}

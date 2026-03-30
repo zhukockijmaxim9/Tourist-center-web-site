@@ -99,3 +99,229 @@
         padding: 2rem 1.6rem;
     }
 }
+
+// ─── Lead CRM List ──────────────────────────────────
+.lead-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+}
+
+.lead-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: 100px;
+    border: 1px solid $glass-border;
+    background: transparent;
+    color: $text-secondary;
+    font-size: 1.3rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: $transition;
+
+    &:hover {
+        background: var(--hover-bg);
+        color: $text-primary;
+    }
+
+    &.active {
+        background: $bg-card-hover;
+        color: $text-primary;
+        border-color: $text-muted;
+    }
+
+    .lead-filter-count {
+        background: var(--hover-bg);
+        padding: 0.1rem 0.6rem;
+        border-radius: 100px;
+        font-size: 1.1rem;
+        min-width: 2rem;
+        text-align: center;
+    }
+}
+
+.lead-filter-primary.active { border-color: $primary; color: $primary; }
+.lead-filter-warning.active { border-color: $warning; color: $warning; }
+.lead-filter-success.active { border-color: $success; color: $success; }
+.lead-filter-danger.active { border-color: $danger; color: $danger; }
+
+.leads-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-radius: $radius-lg;
+    border: 1px solid $glass-border;
+    background: $bg-card;
+    box-shadow: $shadow;
+    overflow: hidden;
+}
+
+.lead-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1.6rem 2rem;
+    border-bottom: 1px solid $glass-border;
+    transition: $transition;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: var(--table-row-hover);
+    }
+}
+
+.lead-row-main {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.lead-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 180px;
+    max-width: 240px;
+}
+
+.lead-contact-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: $text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lead-contact-detail {
+    font-size: 1.2rem;
+    color: $text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lead-info {
+    display: flex;
+    align-items: center;
+    gap: 2.4rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.lead-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.lead-info-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $text-muted;
+}
+
+.lead-info-value {
+    font-size: 1.35rem;
+    color: $text-secondary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lead-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-shrink: 0;
+}
+
+.lead-status-select {
+    appearance: none;
+    padding: 0.5rem 2.8rem 0.5rem 1.2rem;
+    border-radius: $radius-sm;
+    font-size: 1.3rem;
+    font-weight: 600;
+    border: 1px solid $glass-border;
+    cursor: pointer;
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    transition: $transition;
+    min-width: 13rem;
+    color: $text-secondary;
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba($primary, 0.25);
+    }
+
+    option {
+        background: var(--bg-card);
+        color: var(--text-primary);
+    }
+}
+
+.lead-status-primary {
+    border-color: rgba($primary, 0.4);
+    color: $primary;
+}
+
+.lead-status-warning {
+    border-color: rgba($warning, 0.4);
+    color: $warning;
+}
+
+.lead-status-success {
+    border-color: rgba($success, 0.4);
+    color: $success;
+}
+
+.lead-status-danger {
+    border-color: rgba($danger, 0.4);
+    color: $danger;
+}
+
+.lead-action-buttons {
+    display: flex;
+    gap: 0.6rem;
+}
+
+@media (max-width: 900px) {
+    .lead-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.2rem;
+    }
+
+    .lead-row-main {
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+
+    .lead-contact {
+        max-width: none;
+    }
+
+    .lead-info {
+        flex-wrap: wrap;
+        gap: 1.2rem;
+    }
+
+    .lead-row-actions {
+        justify-content: space-between;
+    }
+}

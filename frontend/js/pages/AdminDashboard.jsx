@@ -18,11 +18,14 @@ const LEAD_STATUS_LABELS = {
     cancelled: 'Отменено',
 };
 
-const LEAD_STATUS_ACTIONS = [
-    { value: 'in_progress', label: 'В работе', className: 'status-action-progress' },
-    { value: 'done', label: 'Выполнено', className: 'status-action-done' },
-    { value: 'cancelled', label: 'Отменено', className: 'status-action-cancelled' },
-];
+const LEAD_STATUSES = ['new', 'in_progress', 'done', 'cancelled'];
+
+const LEAD_STATUS_COLORS = {
+    new: 'primary',
+    in_progress: 'warning',
+    done: 'success',
+    cancelled: 'danger',
+};
 
 export default function AdminDashboard() {
     const [tab, setTab] = useState('users');
@@ -36,6 +39,7 @@ export default function AdminDashboard() {
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState({});
     const [error, setError] = useState('');
+    const [leadStatusFilter, setLeadStatusFilter] = useState('all');
 
     useEffect(() => { loadAll(); }, []);
 
@@ -225,32 +229,11 @@ export default function AdminDashboard() {
     };
 
     // ─── Leads ──────────────────────────────────────
-    const leadColumns = [
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: 'Имя' },
-        { key: 'email', label: 'Email' },
-        { key: 'phone', label: 'Телефон' },
-        {
-            key: 'service',
-            label: 'Услуга',
-            render: (val) => val?.name || '—',
-        },
-        {
-            key: 'user',
-            label: 'Пользователь',
-            render: (val) => val?.name || 'Гость',
-        },
-        {
-            key: 'status',
-            label: 'Статус',
-            render: (val) => (
-                <span className={`badge badge-${val === 'done' ? 'success' : val === 'cancelled' ? 'danger' : val === 'in_progress' ? 'warning' : 'primary'}`}>
-                    {LEAD_STATUS_LABELS[val] || val}
-                </span>
-            ),
-        },
-        { key: 'created_at', label: 'Дата', render: (v) => new Date(v).toLocaleDateString('ru-RU') },
-    ];
+    const filteredLeads = leadStatusFilter === 'all'
+        ? leads
+        : leads.filter((l) => l.status === leadStatusFilter);
+
+    const leadCountByStatus = (status) => leads.filter((l) => l.status === status).length;
 
     const openLeadEdit = async (l) => {
         setEditing(l);
@@ -429,27 +412,73 @@ export default function AdminDashboard() {
                     <div className="section-header">
                         <h2>Заявки ({leads.length})</h2>
                     </div>
-                    <DataTable
-                        columns={leadColumns}
-                        data={leads}
-                        onEdit={openLeadEdit}
-                        onDelete={deleteLead}
-                        renderActions={(lead) => (
-                            <div className="status-quick-actions">
-                                {LEAD_STATUS_ACTIONS.map((action) => (
-                                    <button
-                                        key={action.value}
-                                        type="button"
-                                        className={`btn btn-sm btn-outline status-action-btn ${action.className}`}
-                                        onClick={() => updateLeadStatus(lead, action.value)}
-                                        disabled={lead.status === action.value}
-                                    >
-                                        {action.label}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    />
+
+                    {/* Status filter bar */}
+                    <div className="lead-filters">
+                        <button
+                            className={`lead-filter-btn ${leadStatusFilter === 'all' ? 'active' : ''}`}
+                            onClick={() => setLeadStatusFilter('all')}
+                        >
+                            Все <span className="lead-filter-count">{leads.length}</span>
+                        </button>
+                        {LEAD_STATUSES.map((s) => (
+                            <button
+                                key={s}
+                                className={`lead-filter-btn lead-filter-${LEAD_STATUS_COLORS[s]} ${leadStatusFilter === s ? 'active' : ''}`}
+                                onClick={() => setLeadStatusFilter(s)}
+                            >
+                                {LEAD_STATUS_LABELS[s]} <span className="lead-filter-count">{leadCountByStatus(s)}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Leads list */}
+                    {filteredLeads.length === 0 ? (
+                        <div className="empty-state">Нет заявок</div>
+                    ) : (
+                        <div className="leads-list">
+                            {filteredLeads.map((lead) => (
+                                <div key={lead.id} className="lead-row">
+                                    <div className="lead-row-main">
+                                        <div className="lead-contact">
+                                            <span className="lead-contact-name">{lead.name}</span>
+                                            <span className="lead-contact-detail">{lead.email}</span>
+                                            <span className="lead-contact-detail">{lead.phone}</span>
+                                        </div>
+                                        <div className="lead-info">
+                                            <div className="lead-info-item">
+                                                <span className="lead-info-label">Услуга</span>
+                                                <span className="lead-info-value">{lead.service?.name || '—'}</span>
+                                            </div>
+                                            <div className="lead-info-item">
+                                                <span className="lead-info-label">Клиент</span>
+                                                <span className="lead-info-value">{lead.user?.name || 'Гость'}</span>
+                                            </div>
+                                            <div className="lead-info-item">
+                                                <span className="lead-info-label">Дата</span>
+                                                <span className="lead-info-value">{new Date(lead.created_at).toLocaleDateString('ru-RU')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="lead-row-actions">
+                                        <select
+                                            className={`lead-status-select lead-status-${LEAD_STATUS_COLORS[lead.status]}`}
+                                            value={lead.status}
+                                            onChange={(e) => updateLeadStatus(lead, e.target.value)}
+                                        >
+                                            {LEAD_STATUSES.map((s) => (
+                                                <option key={s} value={s}>{LEAD_STATUS_LABELS[s]}</option>
+                                            ))}
+                                        </select>
+                                        <div className="lead-action-buttons">
+                                            <button className="btn btn-sm btn-outline" type="button" onClick={() => openLeadEdit(lead)}>✏️</button>
+                                            <button className="btn btn-sm btn-danger" type="button" onClick={() => deleteLead(lead)}>🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </section>
             )}
 

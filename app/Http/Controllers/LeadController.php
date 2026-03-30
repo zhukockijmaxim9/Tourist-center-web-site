@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lead;
+use App\Models\LeadNote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -38,7 +39,7 @@ class LeadController extends Controller
             'phone' => $validated['phone'],
             'message' => $validated['message'] ?? null,
             'service_id' => $validated['service_id'],
-            'user_id' => Auth::id(),
+            'user_id' => Auth::id() ?? null,
         ]);
 
         return response()->json($lead->load('service'), 201);
@@ -46,11 +47,19 @@ class LeadController extends Controller
 
     public function show(Lead $lead)
     {
+        if (!Auth::user()->isAdmin() && $lead->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
         return response()->json($lead->load(['user', 'service']));
     }
 
     public function update(Request $request, Lead $lead)
     {
+        if (!Auth::user()->isAdmin() && $lead->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|max:255',
@@ -67,6 +76,10 @@ class LeadController extends Controller
 
     public function destroy(Lead $lead)
     {
+        if (!Auth::user()->isAdmin() && $lead->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
         $lead->delete();
         return response()->json(['message' => 'Заявка удалена']);
     }

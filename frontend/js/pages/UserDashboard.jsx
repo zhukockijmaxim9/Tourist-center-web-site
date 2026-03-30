@@ -25,8 +25,8 @@ export default function UserDashboard() {
             ]);
             setServices(sRes.data);
             setLeads(lRes.data);
-        } catch {
-            // silently fail
+        } catch (err) {
+            alert('Ошибка загрузки данных: ' + (err.response?.data?.message || err.message));
         }
     };
 

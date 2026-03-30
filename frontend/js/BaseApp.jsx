@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function ProtectedRoute({ children, adminOnly = false }) {
     const { user, loading } = useAuth();
@@ -65,7 +66,9 @@ const App = () => {
         <BrowserRouter>
             <AuthProvider>
                 <ThemeProvider>
-                    <AppRoutes />
+                    <ErrorBoundary>
+                        <AppRoutes />
+                    </ErrorBoundary>
                 </ThemeProvider>
             </AuthProvider>
         </BrowserRouter>

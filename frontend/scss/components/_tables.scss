@@ -31,10 +31,9 @@
         padding: 1.2rem 1.6rem;
         border-bottom: 1px solid $glass-border;
         color: $text-secondary;
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        max-width: 400px;
+        word-wrap: break-word;
+        word-break: break-word;
     }
 
     tr:last-child td {

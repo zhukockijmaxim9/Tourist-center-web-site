@@ -40,7 +40,9 @@ export default function AdminDashboard() {
             setLeads(l.data);
             setCategories(c.data);
             setReviews(r.data);
-        } catch { /* */ }
+        } catch (err) {
+            alert('Ошибка загрузки данных: ' + (err.response?.data?.message || err.message));
+        }
     };
 
     const update = (key, val) => setForm({ ...form, [key]: val });
@@ -254,7 +256,10 @@ export default function AdminDashboard() {
         try {
             const res = await leadsApi.getNotes(l.id);
             setLeadNotes(res.data);
-        } catch { setLeadNotes([]); }
+        } catch (err) {
+            console.error('Ошибка загрузки заметок:', err);
+            setLeadNotes([]);
+        }
     };
 
     const addLeadNote = async () => {

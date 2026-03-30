@@ -6,11 +6,11 @@ export default defineConfig({
     server: {
         open: '/frontend/index.html',
         proxy: {
-            '/login': 'http://localhost:8000',
-            '/register': 'http://localhost:8000',
-            '/logout': 'http://localhost:8000',
-            '/user': 'http://localhost:8000',
-            '/api': 'http://localhost:8000',
+            '/login': process.env.VITE_API_URL || 'http://localhost:8000',
+            '/register': process.env.VITE_API_URL || 'http://localhost:8000',
+            '/logout': process.env.VITE_API_URL || 'http://localhost:8000',
+            '/user': process.env.VITE_API_URL || 'http://localhost:8000',
+            '/api': process.env.VITE_API_URL || 'http://localhost:8000',
         },
     },
     plugins: [

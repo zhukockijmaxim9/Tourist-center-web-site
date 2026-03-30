@@ -19,8 +19,8 @@ export default function Landing() {
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        servicesApi.getAll().then(res => setServices(res.data)).catch(() => {});
-        categoriesApi.getAll().then(res => setCategories(res.data)).catch(() => {});
+        servicesApi.getAll().then(res => setServices(res.data)).catch(err => console.error('Ошибка загрузки услуг:', err));
+        categoriesApi.getAll().then(res => setCategories(res.data)).catch(err => console.error('Ошибка загрузки категорий:', err));
     }, []);
 
     const openServiceDetails = async (service) => {
@@ -29,7 +29,9 @@ export default function Landing() {
             const res = await servicesApi.getOne(service.id);
             setServiceDetails(res.data);
             setShowServiceModal(true);
-        } catch { /* */ }
+        } catch (err) {
+            alert('Ошибка загрузки деталей услуги');
+        }
     };
 
     const handleReviewSubmit = async (e) => {
@@ -41,7 +43,9 @@ export default function Landing() {
             });
             alert('Спасибо! Ваш отзыв отправлен на модерацию.');
             setReviewForm({ rating: 5, comment: '' });
-        } catch { alert('Ошибка при отправке отзыва'); }
+        } catch (err) {
+            alert(err.response?.data?.message || 'Ошибка при отправке отзыва');
+        }
     };
 
     const openCreate = (service) => {
@@ -149,7 +153,7 @@ export default function Landing() {
                         {services.filter(s => !selectedCategory || s.category_id === selectedCategory).map((s) => (
                             <div key={s.id} className="service-card" onClick={() => openServiceDetails(s)} style={{ cursor: 'pointer' }}>
                                 <div className="service-card-icon">🌍</div>
-                                <div className="service-category" style={{ fontSize: '0.8rem', color: '#666' }}>
+                                <div className="service-category" style={{ fontSize: '1rem', color: '#555', fontWeight: '500', marginBottom: '0.4rem' }}>
                                     {s.category?.name || 'Без категории'}
                                 </div>
                                 <h3>{s.name}</h3>
@@ -243,7 +247,7 @@ export default function Landing() {
                         <p>{serviceDetails.description}</p>
                         <hr />
                         <h4>Отзывы клиентов</h4>
-                        <div className="reviews-list" style={{ maxHeight: '250px', overflowY: 'auto', marginBottom: '1.5rem' }}>
+                        <div className="reviews-list" style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: '1.5rem' }}>
                             {serviceDetails.reviews?.length === 0 && <p className="text-muted">Отзывов пока нет. Будьте первым!</p>}
                             {serviceDetails.reviews?.map(r => (
                                 <div key={r.id} className="review-item" style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', marginBottom: '0.5rem' }}>
@@ -256,7 +260,7 @@ export default function Landing() {
                             ))}
                         </div>
 
-                        {user ? (
+                        {user && user.role !== 'admin' ? (
                             <form onSubmit={handleReviewSubmit} style={{ borderTop: '1px solid #eee', paddingTop: '1rem' }}>
                                 <h5>Оставить отзыв</h5>
                                 <div className="form-group">

@@ -16,6 +16,10 @@ class ReviewController extends Controller
 
     public function store(Request $request)
     {
+        if (Auth::user()->isAdmin()) {
+            return response()->json(['message' => 'Администраторы не могут оставлять отзывы'], 403);
+        }
+
         $request->validate([
             'service_id' => 'required|exists:services,id',
             'rating' => 'required|integer|min:1|max:5',

@@ -47,8 +47,64 @@
 
 .actions-cell {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.6rem;
     white-space: nowrap;
+
+    .btn {
+        flex-shrink: 0;
+    }
+}
+
+.status-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.status-action-btn {
+    min-width: 9.4rem;
+
+    &:disabled {
+        opacity: 1;
+    }
+}
+
+.status-action-progress {
+    border-color: rgba($warning, 0.35);
+    color: $warning;
+
+    &:hover:not(:disabled),
+    &:disabled {
+        background: rgba($warning, 0.15);
+        color: $warning;
+        border-color: rgba($warning, 0.35);
+    }
+}
+
+.status-action-done {
+    border-color: rgba($success, 0.35);
+    color: $success;
+
+    &:hover:not(:disabled),
+    &:disabled {
+        background: rgba($success, 0.15);
+        color: $success;
+        border-color: rgba($success, 0.35);
+    }
+}
+
+.status-action-cancelled {
+    border-color: rgba($danger, 0.35);
+    color: $danger;
+
+    &:hover:not(:disabled),
+    &:disabled {
+        background: rgba($danger, 0.15);
+        color: $danger;
+        border-color: rgba($danger, 0.35);
+    }
 }
 
 .empty-state {

@@ -11,6 +11,19 @@ const TABS = [
     { key: 'reviews', label: '⭐ Отзывы' },
 ];
 
+const LEAD_STATUS_LABELS = {
+    new: 'Новая',
+    in_progress: 'В работе',
+    done: 'Выполнено',
+    cancelled: 'Отменено',
+};
+
+const LEAD_STATUS_ACTIONS = [
+    { value: 'in_progress', label: 'В работе', className: 'status-action-progress' },
+    { value: 'done', label: 'Выполнено', className: 'status-action-done' },
+    { value: 'cancelled', label: 'Отменено', className: 'status-action-cancelled' },
+];
+
 export default function AdminDashboard() {
     const [tab, setTab] = useState('users');
     const [users, setUsers] = useState([]);
@@ -232,7 +245,7 @@ export default function AdminDashboard() {
             label: 'Статус',
             render: (val) => (
                 <span className={`badge badge-${val === 'done' ? 'success' : val === 'cancelled' ? 'danger' : val === 'in_progress' ? 'warning' : 'primary'}`}>
-                    {val}
+                    {LEAD_STATUS_LABELS[val] || val}
                 </span>
             ),
         },
@@ -281,6 +294,26 @@ export default function AdminDashboard() {
             loadAll();
         } catch (err) {
             handleError(err);
+        }
+    };
+
+    const updateLeadStatus = async (lead, status) => {
+        if (lead.status === status) return;
+
+        try {
+            const response = await leadsApi.update(lead.id, { status });
+            const updatedLead = response.data;
+
+            setLeads((currentLeads) => currentLeads.map((item) => (
+                item.id === lead.id ? { ...item, ...updatedLead } : item
+            )));
+
+            if (editing?.id === lead.id) {
+                setEditing((currentEditing) => currentEditing ? { ...currentEditing, ...updatedLead } : currentEditing);
+                setForm((currentForm) => ({ ...currentForm, status: updatedLead.status }));
+            }
+        } catch (err) {
+            alert(err.response?.data?.message || 'Не удалось обновить статус заявки');
         }
     };
 
@@ -396,7 +429,27 @@ export default function AdminDashboard() {
                     <div className="section-header">
                         <h2>Заявки ({leads.length})</h2>
                     </div>
-                    <DataTable columns={leadColumns} data={leads} onEdit={openLeadEdit} onDelete={deleteLead} />
+                    <DataTable
+                        columns={leadColumns}
+                        data={leads}
+                        onEdit={openLeadEdit}
+                        onDelete={deleteLead}
+                        renderActions={(lead) => (
+                            <div className="status-quick-actions">
+                                {LEAD_STATUS_ACTIONS.map((action) => (
+                                    <button
+                                        key={action.value}
+                                        type="button"
+                                        className={`btn btn-sm btn-outline status-action-btn ${action.className}`}
+                                        onClick={() => updateLeadStatus(lead, action.value)}
+                                        disabled={lead.status === action.value}
+                                    >
+                                        {action.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    />
                 </section>
             )}
 

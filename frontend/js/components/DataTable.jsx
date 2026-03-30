@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function DataTable({ columns, data, onEdit, onDelete }) {
+export default function DataTable({ columns, data, onEdit, onDelete, renderActions }) {
     if (!data || data.length === 0) {
         return <div className="empty-state">Нет данных</div>;
     }
@@ -13,7 +13,7 @@ export default function DataTable({ columns, data, onEdit, onDelete }) {
                         {columns.map((col) => (
                             <th key={col.key}>{col.label}</th>
                         ))}
-                        {(onEdit || onDelete) && <th>Действия</th>}
+                        {(onEdit || onDelete || renderActions) && <th>Действия</th>}
                     </tr>
                 </thead>
                 <tbody>
@@ -24,11 +24,13 @@ export default function DataTable({ columns, data, onEdit, onDelete }) {
                                     {col.render ? col.render(row[col.key], row) : (row[col.key] ?? '—')}
                                 </td>
                             ))}
-                            {(onEdit || onDelete) && (
+                            {(onEdit || onDelete || renderActions) && (
                                 <td className="actions-cell">
+                                    {renderActions && renderActions(row)}
                                     {onEdit && (
                                         <button
                                             className="btn btn-sm btn-outline"
+                                            type="button"
                                             onClick={() => onEdit(row)}
                                         >
                                             ✏️
@@ -37,6 +39,7 @@ export default function DataTable({ columns, data, onEdit, onDelete }) {
                                     {onDelete && (
                                         <button
                                             className="btn btn-sm btn-danger"
+                                            type="button"
                                             onClick={() => onDelete(row)}
                                         >
                                             🗑️

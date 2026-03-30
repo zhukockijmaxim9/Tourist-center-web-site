@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AddLeadNoteRequest;
 use App\Http\Requests\StoreLeadRequest;
 use App\Http\Requests\UpdateLeadRequest;
 use App\Http\Requests\AuthorizeLeadActionRequest;
 use App\Models\Lead;
-use Illuminate\Http\Request;
+use App\Models\LeadNote;
 use Illuminate\Support\Facades\Auth;
 
 class LeadController extends Controller
@@ -61,11 +62,9 @@ class LeadController extends Controller
         return response()->json(['message' => 'Заявка удалена']);
     }
 
-    public function addNote(Request $request, Lead $lead)
+    public function addNote(AddLeadNoteRequest $request, Lead $lead)
     {
-        $validated = $request->validate([
-            'note' => 'required|string',
-        ]);
+        $validated = $request->validated();
 
         $note = LeadNote::create([
             'lead_id' => $lead->id,

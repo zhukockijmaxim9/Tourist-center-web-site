@@ -53,6 +53,18 @@ php artisan migrate --seed
   ```bash
   php artisan migrate:fresh --seed
   ```
+- **Быстрое заполнение тестовыми данными для CRM:**
+  ```bash
+  php artisan app:seed-demo
+  ```
+- **Полный пересозданный набор тестовых данных с миграциями:**
+  ```bash
+  php artisan app:seed-demo --fresh
+  ```
+- **Кастомное количество записей:**
+  ```bash
+  php artisan app:seed-demo --users=30 --leads=50 --reviews=10 --categories=10 --services=30
+  ```
 - **Сборка для продакшена:**
   ```bash
   npm run build

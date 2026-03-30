@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreLeadRequest;
+use App\Http\Requests\UpdateLeadRequest;
+use App\Http\Requests\AuthorizeLeadActionRequest;
 use App\Models\Lead;
-use App\Models\LeadNote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,15 +25,9 @@ class LeadController extends Controller
         return response()->json($leads);
     }
 
-    public function store(Request $request)
+    public function store(StoreLeadRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
-            'message' => 'nullable|string',
-            'service_id' => 'required|exists:services,id',
-        ]);
+        $validated = $request->validated();
 
         $lead = Lead::create([
             'name' => $validated['name'],
@@ -45,41 +41,22 @@ class LeadController extends Controller
         return response()->json($lead->load('service'), 201);
     }
 
-    public function show(Lead $lead)
+    public function show(AuthorizeLeadActionRequest $request, Lead $lead)
     {
-        if (!Auth::user()->isAdmin() && $lead->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Доступ запрещён'], 403);
-        }
-
         return response()->json($lead->load(['user', 'service']));
     }
 
-    public function update(Request $request, Lead $lead)
+    public function update(UpdateLeadRequest $request, Lead $lead)
     {
-        if (!Auth::user()->isAdmin() && $lead->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Доступ запрещён'], 403);
-        }
-
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|max:255',
-            'phone' => 'sometimes|required|string|max:20',
-            'message' => 'nullable|string',
-            'service_id' => 'sometimes|required|exists:services,id',
-            'status' => 'nullable|string|in:new,in_progress,done,cancelled',
-        ]);
+        $validated = $request->validated();
 
         $lead->update($validated);
 
         return response()->json($lead->load(['user', 'service']));
     }
 
-    public function destroy(Lead $lead)
+    public function destroy(AuthorizeLeadActionRequest $request, Lead $lead)
     {
-        if (!Auth::user()->isAdmin() && $lead->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Доступ запрещён'], 403);
-        }
-
         $lead->delete();
         return response()->json(['message' => 'Заявка удалена']);
     }

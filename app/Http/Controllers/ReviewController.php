@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreReviewRequest;
 use App\Models\Review;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
@@ -14,23 +15,15 @@ class ReviewController extends Controller
         return response()->json(Review::with(['user', 'service'])->latest()->get());
     }
 
-    public function store(Request $request)
+    public function store(StoreReviewRequest $request)
     {
-        if (Auth::user()->isAdmin()) {
-            return response()->json(['message' => 'Администраторы не могут оставлять отзывы'], 403);
-        }
-
-        $request->validate([
-            'service_id' => 'required|exists:services,id',
-            'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $review = Review::create([
             'user_id' => Auth::id(),
-            'service_id' => $request->service_id,
-            'rating' => $request->rating,
-            'comment' => $request->comment,
+            'service_id' => $validated['service_id'],
+            'rating' => $validated['rating'],
+            'comment' => $validated['comment'] ?? null,
             'is_approved' => false, // Always false on creation
         ]);
 

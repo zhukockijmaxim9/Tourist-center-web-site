@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateUserRequest extends FormRequest
+class UserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,14 +21,15 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Accessing the user being updated from the route
-        $userId = $this->route('user')->id;
+        $userId = $this->route('user')?->id;
 
         return [
-            'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:users,email,' . $userId,
+            'name' => 'required|string|max:255',
+            'email' => $userId 
+                ? 'required|email|unique:users,email,' . $userId
+                : 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20',
-            'password' => 'nullable|string|min:6',
+            'password' => $userId ? 'nullable|string|min:6' : 'required|string|min:6',
             'role' => 'nullable|string|in:user,admin',
             'status' => 'nullable|string|in:active,inactive',
         ];
@@ -40,10 +41,11 @@ class UpdateUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Имя пользователя обязательно для заполнения',
+            'name.required' => 'Имя пользователя обязательно',
             'email.required' => 'Email обязателен для заполнения',
             'email.email' => 'Укажите корректный email адрес',
             'email.unique' => 'Пользователь с таким email уже существует',
+            'password.required' => 'Пароль обязателен',
             'password.min' => 'Пароль должен состоять минимум из 6 символов',
             'role.in' => 'Указана неверная роль пользователя',
             'status.in' => 'Указан неверный статус',

@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreServiceRequest;
-use App\Http\Requests\UpdateServiceRequest;
+use App\Http\Requests\ServiceRequest;
 use App\Models\Service;
 use Illuminate\Http\Request;
 
@@ -15,7 +14,7 @@ class ServiceController extends Controller
         return response()->json($services);
     }
 
-    public function store(StoreServiceRequest $request)
+    public function store(ServiceRequest $request)
     {
         $validated = $request->validated();
 
@@ -31,7 +30,7 @@ class ServiceController extends Controller
         }]));
     }
 
-    public function update(UpdateServiceRequest $request, Service $service)
+    public function update(ServiceRequest $request, Service $service)
     {
         $validated = $request->validated();
 

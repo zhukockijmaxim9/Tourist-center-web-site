@@ -11,7 +11,7 @@
 
         <!-- Vite React Refresh and Assets -->
         @viteReactRefresh
-        @vite(['resources/css/app.css', 'resources/js/index.jsx'])
+        @vite(['frontend/scss/app.scss', 'frontend/js/index.jsx'])
     </head>
     <body class="antialiased bg-gray-100">
         <div id="app"></div>

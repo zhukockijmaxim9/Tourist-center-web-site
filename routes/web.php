@@ -20,5 +20,5 @@ Route::prefix('api')->group(function () {
 // SPA catch-all — returns React frontend (ONLY for GET requests)
 // =====================
 Route::get('/{any?}', function () {
-    return file_get_contents(base_path('frontend/index.html'));
+    return view('welcome');
 })->where('any', '.*')->name('spa.fallback');

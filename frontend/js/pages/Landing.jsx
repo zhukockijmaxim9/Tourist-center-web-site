@@ -43,6 +43,9 @@ export default function Landing() {
             });
             alert('Спасибо! Ваш отзыв отправлен на модерацию.');
             setReviewForm({ rating: 5, comment: '' });
+            // Refresh service details to update can_review / has_reviewed
+            const res = await servicesApi.getOne(selectedService.id);
+            setServiceDetails(res.data);
         } catch (err) {
             alert(err.response?.data?.message || 'Ошибка при отправке отзыва');
         }
@@ -124,10 +127,10 @@ export default function Landing() {
 
             {/* Categories Filter */}
             {categories.length > 0 && (
-                <div className="container" style={{ marginBottom: '2rem' }}>
-                    <div className="category-tabs" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div className="category-filter">
+                    <div className="category-tabs">
                         <button 
-                            className={`btn ${selectedCategory === null ? 'btn-primary' : 'btn-outline'}`}
+                            className={`category-tab ${selectedCategory === null ? 'active' : ''}`}
                             onClick={() => setSelectedCategory(null)}
                         >
                             Все
@@ -135,7 +138,7 @@ export default function Landing() {
                         {categories.map(c => (
                             <button 
                                 key={c.id}
-                                className={`btn ${selectedCategory === c.id ? 'btn-primary' : 'btn-outline'}`}
+                                className={`category-tab ${selectedCategory === c.id ? 'active' : ''}`}
                                 onClick={() => setSelectedCategory(c.id)}
                             >
                                 {c.name}
@@ -250,44 +253,116 @@ export default function Landing() {
             >
                 {serviceDetails && (
                     <div className="service-details">
-                        <p>{serviceDetails.description}</p>
-                        <hr />
-                        <h4>Отзывы клиентов</h4>
-                        <div className="reviews-list" style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: '1.5rem' }}>
-                            {serviceDetails.reviews?.length === 0 && <p className="text-muted">Отзывов пока нет. Будьте первым!</p>}
-                            {serviceDetails.reviews?.map(r => (
-                                <div key={r.id} className="review-item" style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', marginBottom: '0.5rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <strong>{r.user?.name}</strong>
-                                        <span style={{ color: '#f39c12' }}>{'⭐'.repeat(r.rating)}</span>
+                        <p className="service-details-desc">{serviceDetails.description}</p>
+
+                        {serviceDetails.price && (
+                            <div className="service-details-price">
+                                {Number(serviceDetails.price).toLocaleString('ru-RU')} ₽
+                            </div>
+                        )}
+
+                        {/* Reviews Summary */}
+                        <div className="reviews-section">
+                            <div className="reviews-header">
+                                <h4>Отзывы клиентов</h4>
+                                {serviceDetails.reviews_count > 0 && (
+                                    <div className="reviews-summary">
+                                        <span className="reviews-avg">
+                                            {'⭐'.repeat(Math.round(serviceDetails.avg_rating || 0))}
+                                        </span>
+                                        <span className="reviews-avg-number">
+                                            {Number(serviceDetails.avg_rating || 0).toFixed(1)}
+                                        </span>
+                                        <span className="reviews-count">
+                                            ({serviceDetails.reviews_count} {serviceDetails.reviews_count === 1 ? 'отзыв' : serviceDetails.reviews_count < 5 ? 'отзыва' : 'отзывов'})
+                                        </span>
                                     </div>
-                                    <p style={{ margin: '0.5rem 0 0', fontSize: '0.9rem' }}>{r.comment}</p>
-                                </div>
-                            ))}
+                                )}
+                            </div>
+
+                            <div className="reviews-list">
+                                {serviceDetails.reviews?.length === 0 && (
+                                    <div className="reviews-empty">
+                                        <span className="reviews-empty-icon">💬</span>
+                                        <p>Отзывов пока нет.</p>
+                                    </div>
+                                )}
+                                {serviceDetails.reviews?.map(r => (
+                                    <div key={r.id} className="review-card">
+                                        <div className="review-card-header">
+                                            <div className="review-author">
+                                                <div className="review-avatar">
+                                                    {r.user?.name?.charAt(0)?.toUpperCase() || '?'}
+                                                </div>
+                                                <div className="review-author-info">
+                                                    <span className="review-author-name">{r.user?.name || 'Аноним'}</span>
+                                                    <span className="review-date">
+                                                        {new Date(r.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="review-rating">
+                                                {[1,2,3,4,5].map(star => (
+                                                    <span key={star} className={`review-star ${star <= r.rating ? 'filled' : ''}`}>★</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        {r.comment && (
+                                            <p className="review-comment">{r.comment}</p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
-                        {user && user.role !== 'admin' ? (
-                            <form onSubmit={handleReviewSubmit} style={{ borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+                        {/* Review Form — only for non-admin users with completed leads */}
+                        {user && user.role !== 'admin' && serviceDetails.can_review && (
+                            <form onSubmit={handleReviewSubmit} className="review-form">
                                 <h5>Оставить отзыв</h5>
                                 <div className="form-group">
                                     <label>Оценка</label>
-                                    <select value={reviewForm.rating} onChange={(e) => setReviewForm({...reviewForm, rating: e.target.value})}>
-                                        {[5,4,3,2,1].map(v => <option key={v} value={v}>{v} ⭐</option>)}
-                                    </select>
+                                    <div className="star-select">
+                                        {[1,2,3,4,5].map(v => (
+                                            <button
+                                                type="button"
+                                                key={v}
+                                                className={`star-btn ${v <= reviewForm.rating ? 'active' : ''}`}
+                                                onClick={() => setReviewForm({...reviewForm, rating: v})}
+                                            >
+                                                ★
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                                 <div className="form-group">
                                     <label>Комментарий</label>
                                     <textarea 
                                         value={reviewForm.comment} 
                                         onChange={(e) => setReviewForm({...reviewForm, comment: e.target.value})}
-                                        rows={2}
+                                        rows={3}
                                         placeholder="Поделитесь вашим мнением..."
                                     />
                                 </div>
-                                <button type="submit" className="btn btn-outline btn-block">Отправить</button>
+                                <button type="submit" className="btn btn-primary btn-block">Отправить отзыв</button>
                             </form>
-                        ) : (
-                            <p className="text-muted small">Пожалуйста, <Link to="/login">войдите</Link>, чтобы оставить отзыв.</p>
+                        )}
+
+                        {user && user.role !== 'admin' && serviceDetails.has_reviewed && (
+                            <div className="review-notice">
+                                <span>✅</span> Вы уже оставили отзыв на эту услугу. Спасибо!
+                            </div>
+                        )}
+
+                        {user && user.role !== 'admin' && !serviceDetails.can_review && !serviceDetails.has_reviewed && (
+                            <div className="review-notice">
+                                <span>ℹ️</span> Оставить отзыв можно после выполнения заявки на эту услугу.
+                            </div>
+                        )}
+
+                        {!user && (
+                            <div className="review-notice">
+                                <span>🔑</span> <Link to="/login">Войдите</Link>, чтобы оставить отзыв.
+                            </div>
                         )}
                         
                         <div style={{ marginTop: '1.5rem' }}>

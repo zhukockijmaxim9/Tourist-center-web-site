@@ -80,6 +80,46 @@
     left: 30%;
 }
 
+// ─── Category Filter ─────────────────────────────────
+.category-filter {
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+    padding: 0 2.4rem;
+}
+
+.category-tabs {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.category-tab {
+    background: transparent;
+    border: 1px solid $glass-border;
+    color: $text-secondary;
+    padding: 0.6rem 1.6rem;
+    border-radius: 100px;
+    font-size: 1.3rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: $transition;
+    white-space: nowrap;
+
+    &:hover {
+        color: $primary;
+        border-color: $primary;
+        background: rgba(16, 185, 129, 0.06);
+    }
+
+    &.active {
+        background: $primary;
+        border-color: $primary;
+        color: #fff;
+        font-weight: 600;
+    }
+}
+
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -205,5 +245,240 @@
         color: $text-secondary;
         font-size: 1.8rem;
         margin-bottom: 3.2rem;
+    }
+}
+
+// ─── Service Details Modal ──────────────────────────
+.service-details {
+    .service-details-desc {
+        color: $text-secondary;
+        font-size: 1.4rem;
+        line-height: 1.7;
+        margin-bottom: 1.2rem;
+    }
+
+    .service-details-price {
+        font-size: 2rem;
+        font-weight: 700;
+        color: $accent;
+        margin-bottom: 2rem;
+    }
+}
+
+// ─── Reviews Section ────────────────────────────────
+.reviews-section {
+    border-top: 1px solid $glass-border;
+    padding-top: 1.6rem;
+    margin-bottom: 1.6rem;
+}
+
+.reviews-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 1.6rem;
+
+    h4 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+    }
+}
+
+.reviews-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.reviews-avg {
+    font-size: 1.4rem;
+    letter-spacing: -1px;
+}
+
+.reviews-avg-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $text-primary;
+}
+
+.reviews-count {
+    font-size: 1.3rem;
+    color: $text-muted;
+}
+
+.reviews-list {
+    max-height: 360px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-right: 0.4rem;
+
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.3);
+        border-radius: 4px;
+    }
+}
+
+.reviews-empty {
+    text-align: center;
+    padding: 2rem 0;
+    color: $text-muted;
+
+    .reviews-empty-icon {
+        font-size: 2.8rem;
+        display: block;
+        margin-bottom: 0.6rem;
+    }
+
+    p {
+        font-size: 1.4rem;
+        margin: 0;
+    }
+}
+
+.review-card {
+    background: $bg-surface;
+    border: 1px solid $glass-border;
+    border-radius: $radius;
+    padding: 1.4rem;
+}
+
+.review-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.6rem;
+}
+
+.review-author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.review-avatar {
+    width: 3.6rem;
+    height: 3.6rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $primary, $primary-dark);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.review-author-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.review-author-name {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: $text-primary;
+}
+
+.review-date {
+    font-size: 1.2rem;
+    color: $text-muted;
+}
+
+.review-rating {
+    display: flex;
+    gap: 0.1rem;
+    flex-shrink: 0;
+}
+
+.review-star {
+    font-size: 1.5rem;
+    color: $glass-border;
+
+    &.filled {
+        color: #f59e0b;
+    }
+}
+
+.review-comment {
+    font-size: 1.4rem;
+    color: $text-secondary;
+    line-height: 1.6;
+    margin: 0;
+}
+
+// ─── Review Form ────────────────────────────────────
+.review-form {
+    border-top: 1px solid $glass-border;
+    padding-top: 1.6rem;
+    margin-bottom: 1rem;
+
+    h5 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.2rem;
+    }
+}
+
+.star-select {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.star-btn {
+    background: none;
+    border: none;
+    font-size: 2.4rem;
+    cursor: pointer;
+    color: $glass-border;
+    padding: 0.2rem;
+    transition: color 0.15s ease, transform 0.15s ease;
+    line-height: 1;
+
+    &.active {
+        color: #f59e0b;
+    }
+
+    &:hover {
+        transform: scale(1.2);
+        color: #f59e0b;
+    }
+}
+
+.review-notice {
+    background: $bg-surface;
+    border: 1px solid $glass-border;
+    border-radius: $radius;
+    padding: 1.2rem 1.6rem;
+    font-size: 1.3rem;
+    color: $text-secondary;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.5rem;
+
+    a {
+        color: $primary;
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
 }

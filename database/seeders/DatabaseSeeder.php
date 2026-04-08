@@ -10,6 +10,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(LeadStatusSeeder::class);
+
         // Admin account
         User::updateOrCreate(
             ['email' => 'admin@tourist.com'],

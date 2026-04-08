@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('message')->nullable();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('service_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('status')->default('new');
+            $table->foreignId('lead_status_id')->nullable()->constrained('lead_statuses')->onDelete('set null');
             $table->timestamps();
         });
     }

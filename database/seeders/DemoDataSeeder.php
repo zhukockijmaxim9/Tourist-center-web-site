@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Lead;
 use App\Models\LeadNote;
+use App\Models\LeadStatus;
 use App\Models\Review;
 use App\Models\Service;
 use App\Models\User;
@@ -168,10 +169,13 @@ class DemoDataSeeder extends Seeder
     private function createLeads(Generator $faker, Collection $users, Collection $services, int $count): void
     {
         $availableUsers = $users->concat(User::query()->where('email', 'test@example.com')->get())->values();
-        $statuses = ['new', 'new', 'new', 'in_progress', 'in_progress', 'done', 'cancelled'];
+        $statusNames = ['new', 'new', 'new', 'in_progress', 'in_progress', 'done', 'cancelled'];
+        $statusIds = LeadStatus::whereIn('name', array_unique($statusNames))
+            ->pluck('id', 'name');
 
         foreach (range(1, $count) as $index) {
             $user = $faker->boolean(75) ? $availableUsers->random() : null;
+            $statusName = $statusNames[array_rand($statusNames)];
 
             Lead::create([
                 'name' => $user?->name ?? $faker->name(),
@@ -180,7 +184,7 @@ class DemoDataSeeder extends Seeder
                 'message' => $faker->boolean(90) ? $faker->realTextBetween(90, 180) : null,
                 'service_id' => $services->random()->id,
                 'user_id' => $user?->id,
-                'status' => $statuses[array_rand($statuses)],
+                'lead_status_id' => $statusIds[$statusName] ?? null,
             ]);
         }
     }

@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateLeadRequest;
 use App\Http\Requests\AuthorizeLeadActionRequest;
 use App\Models\Lead;
 use App\Models\LeadNote;
+use App\Models\LeadStatus;
 use Illuminate\Support\Facades\Auth;
 
 class LeadController extends Controller
@@ -15,9 +16,9 @@ class LeadController extends Controller
     public function index()
     {
         if (Auth::user()->isAdmin()) {
-            $leads = Lead::with(['user', 'service'])->orderBy('created_at', 'desc')->get();
+            $leads = Lead::with(['user', 'service', 'leadStatus'])->orderBy('created_at', 'desc')->get();
         } else {
-            $leads = Lead::with(['service'])
+            $leads = Lead::with(['service', 'leadStatus'])
                 ->where('user_id', Auth::id())
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -30,6 +31,8 @@ class LeadController extends Controller
     {
         $validated = $request->validated();
 
+        $defaultStatus = LeadStatus::where('name', 'new')->first();
+
         $lead = Lead::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -37,14 +40,15 @@ class LeadController extends Controller
             'message' => $validated['message'] ?? null,
             'service_id' => $validated['service_id'],
             'user_id' => Auth::id() ?? null,
+            'lead_status_id' => $defaultStatus?->id,
         ]);
 
-        return response()->json($lead->load('service'), 201);
+        return response()->json($lead->load(['service', 'leadStatus']), 201);
     }
 
     public function show(AuthorizeLeadActionRequest $request, Lead $lead)
     {
-        return response()->json($lead->load(['user', 'service']));
+        return response()->json($lead->load(['user', 'service', 'leadStatus']));
     }
 
     public function update(UpdateLeadRequest $request, Lead $lead)
@@ -53,7 +57,7 @@ class LeadController extends Controller
 
         $lead->update($validated);
 
-        return response()->json($lead->load(['user', 'service']));
+        return response()->json($lead->load(['user', 'service', 'leadStatus']));
     }
 
     public function destroy(AuthorizeLeadActionRequest $request, Lead $lead)

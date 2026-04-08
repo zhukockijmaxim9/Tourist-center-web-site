@@ -13,8 +13,13 @@ class Lead extends Model
         'message',
         'service_id',
         'user_id',
-        'status',
+        'lead_status_id',
     ];
+
+    public function leadStatus()
+    {
+        return $this->belongsTo(LeadStatus::class);
+    }
 
     public function notes()
     {

@@ -12,6 +12,7 @@ export default function UserDashboard() {
     const [editingLead, setEditingLead] = useState(null);
     const [form, setForm] = useState({ name: '', email: '', phone: '', message: '', service_id: '' });
     const [error, setError] = useState('');
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false });
 
     useEffect(() => {
         loadData();
@@ -78,9 +79,18 @@ export default function UserDashboard() {
     };
 
     const handleDelete = async (lead) => {
-        if (!confirm('Удалить заявку?')) return;
-        await leadsApi.delete(lead.id);
-        loadData();
+        setConfirmModal({
+            isOpen: true,
+            title: 'Удалить заявку?',
+            body: 'Вы уверены? Это действие нельзя отменить.',
+            confirmText: 'Удалить',
+            danger: true,
+            onConfirm: async () => {
+                await leadsApi.delete(lead.id);
+                setConfirmModal({ isOpen: false });
+                loadData();
+            },
+        });
     };
 
     const update = (key, val) => setForm({ ...form, [key]: val });
@@ -184,6 +194,33 @@ export default function UserDashboard() {
                         {editingLead ? 'Сохранить' : 'Отправить'}
                     </button>
                 </form>
+            </Modal>
+
+            {/* Confirm Modal */}
+            <Modal
+                isOpen={!!confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false })}
+                title={confirmModal.title || 'Подтверждение'}
+            >
+                <p style={{ marginTop: 0 }}>{confirmModal.body || 'Вы уверены?'}</p>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                    <button className="btn btn-outline" type="button" onClick={() => setConfirmModal({ isOpen: false })}>
+                        Отмена
+                    </button>
+                    <button
+                        className={`btn ${confirmModal.danger ? 'btn-danger' : 'btn-primary'}`}
+                        type="button"
+                        onClick={async () => {
+                            try {
+                                await confirmModal.onConfirm?.();
+                            } catch (err) {
+                                alert(err.response?.data?.message || err.message || 'Ошибка');
+                            }
+                        }}
+                    >
+                        {confirmModal.confirmText || 'Ок'}
+                    </button>
+                </div>
             </Modal>
         </div>
     );

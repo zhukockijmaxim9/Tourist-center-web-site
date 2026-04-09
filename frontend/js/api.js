@@ -35,6 +35,10 @@ export const leadsApi = {
     delete: (id) => api.delete(`/api/leads/${id}`),
     addNote: (id, data) => api.post(`/api/leads/${id}/notes`, data),
     getNotes: (id) => api.get(`/api/leads/${id}/notes`),
+    claim: (id) => api.post(`/api/leads/${id}/claim`),
+    release: (id) => api.post(`/api/leads/${id}/release`),
+    assign: (id, data) => api.put(`/api/leads/${id}/assign`, data),
+    confirm: (id) => api.post(`/api/leads/${id}/confirm`),
 };
 
 // ── Categories ──

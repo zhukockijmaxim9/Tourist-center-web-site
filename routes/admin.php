@@ -28,6 +28,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Lead Management & Notes
     Route::post('/leads/{lead}/notes', [LeadController::class, 'addNote']);
     Route::get('/leads/{lead}/notes', [LeadController::class, 'getNotes']);
+    Route::post('/leads/{lead}/claim', [LeadController::class, 'claim']);
+    Route::post('/leads/{lead}/release', [LeadController::class, 'release']);
+    Route::put('/leads/{lead}/assign', [LeadController::class, 'assign']);
+    Route::post('/leads/{lead}/confirm', [LeadController::class, 'confirm']);
 
     // Review Moderation
     Route::get('/reviews', [ReviewController::class, 'index']);

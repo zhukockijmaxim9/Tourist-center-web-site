@@ -7,6 +7,7 @@ export default function Navbar() {
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
+    const userInitial = user?.name?.trim?.()?.[0]?.toUpperCase?.() || '👤';
 
     const handleLogout = async () => {
         await logout();
@@ -31,8 +32,8 @@ export default function Navbar() {
                                 to={user.role === 'admin' ? '/admin' : '/dashboard'}
                                 className="nav-link"
                             >
-                                <span className="nav-avatar">{user.name[0]}</span>
-                                {user.name}
+                                <span className="nav-avatar">{userInitial}</span>
+                                {user?.name || 'Пользователь'}
                             </Link>
                             <button className="btn btn-ghost" onClick={handleLogout}>
                                 Выйти

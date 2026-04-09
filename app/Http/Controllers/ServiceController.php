@@ -47,7 +47,7 @@ class ServiceController extends Controller
             // User must have at least one completed lead for this service
             $hasCompletedLead = Lead::where('user_id', $userId)
                 ->where('service_id', $service->id)
-                ->where('status', 'done')
+                ->whereHas('leadStatus', fn ($q) => $q->where('name', 'done'))
                 ->exists();
 
             // Check if user already left a review for this service

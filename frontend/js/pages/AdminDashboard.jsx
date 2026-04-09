@@ -14,15 +14,17 @@ const TABS = [
 const LEAD_STATUS_LABELS = {
     new: 'Новая',
     in_progress: 'В работе',
+    confirmed: 'Подтверждена',
     done: 'Выполнено',
     cancelled: 'Отменено',
 };
 
-const LEAD_STATUSES = ['new', 'in_progress', 'done', 'cancelled'];
+const LEAD_STATUSES = ['new', 'in_progress', 'confirmed', 'done', 'cancelled'];
 
 const LEAD_STATUS_COLORS = {
     new: 'primary',
     in_progress: 'warning',
+    confirmed: 'purple',
     done: 'success',
     cancelled: 'danger',
 };
@@ -40,6 +42,7 @@ export default function AdminDashboard() {
     const [form, setForm] = useState({});
     const [error, setError] = useState('');
     const [leadStatusFilter, setLeadStatusFilter] = useState('all');
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false });
 
     useEffect(() => { loadAll(); }, []);
 
@@ -73,7 +76,11 @@ export default function AdminDashboard() {
         {
             key: 'role',
             label: 'Роль',
-            render: (val) => <span className={`badge badge-${val === 'admin' ? 'warning' : 'primary'}`}>{val}</span>,
+            render: (val) => (
+                <span className={`badge badge-${val === 'super_admin' ? 'danger' : val === 'admin' ? 'warning' : 'primary'}`}>
+                    {val}
+                </span>
+            ),
         },
         {
             key: 'status',
@@ -115,9 +122,18 @@ export default function AdminDashboard() {
     };
 
     const deleteUser = async (u) => {
-        if (!confirm(`Удалить пользователя ${u.name}?`)) return;
-        await usersApi.delete(u.id);
-        loadAll();
+        setConfirmModal({
+            isOpen: true,
+            title: 'Удалить пользователя?',
+            body: `Пользователь: ${u.name}`,
+            confirmText: 'Удалить',
+            danger: true,
+            onConfirm: async () => {
+                await usersApi.delete(u.id);
+                setConfirmModal({ isOpen: false });
+                loadAll();
+            },
+        });
     };
 
     // ─── Services ───────────────────────────────────
@@ -165,9 +181,18 @@ export default function AdminDashboard() {
     };
 
     const deleteService = async (s) => {
-        if (!confirm(`Удалить услугу "${s.name}"?`)) return;
-        await servicesApi.delete(s.id);
-        loadAll();
+        setConfirmModal({
+            isOpen: true,
+            title: 'Удалить услугу?',
+            body: `Услуга: "${s.name}"`,
+            confirmText: 'Удалить',
+            danger: true,
+            onConfirm: async () => {
+                await servicesApi.delete(s.id);
+                setConfirmModal({ isOpen: false });
+                loadAll();
+            },
+        });
     };
 
     // ─── Categories ─────────────────────────────────
@@ -208,9 +233,18 @@ export default function AdminDashboard() {
     };
 
     const deleteCategory = async (c) => {
-        if (!confirm(`Удалить категорию "${c.name}"? Это может отвязать услуги.`)) return;
-        await categoriesApi.delete(c.id);
-        loadAll();
+        setConfirmModal({
+            isOpen: true,
+            title: 'Удалить категорию?',
+            body: `Категория: "${c.name}". Это может отвязать услуги.`,
+            confirmText: 'Удалить',
+            danger: true,
+            onConfirm: async () => {
+                await categoriesApi.delete(c.id);
+                setConfirmModal({ isOpen: false });
+                loadAll();
+            },
+        });
     };
 
     // ─── Reviews ────────────────────────────────────
@@ -223,9 +257,18 @@ export default function AdminDashboard() {
     ];
 
     const deleteReview = async (r) => {
-        if (!confirm('Удалить отзыв?')) return;
-        await reviewsApi.delete(r.id);
-        loadAll();
+        setConfirmModal({
+            isOpen: true,
+            title: 'Удалить отзыв?',
+            body: 'Это действие нельзя отменить.',
+            confirmText: 'Удалить',
+            danger: true,
+            onConfirm: async () => {
+                await reviewsApi.delete(r.id);
+                setConfirmModal({ isOpen: false });
+                loadAll();
+            },
+        });
     };
 
     // ─── Leads ──────────────────────────────────────
@@ -300,10 +343,39 @@ export default function AdminDashboard() {
         }
     };
 
+    const claimLead = async (lead) => {
+        try {
+            const res = await leadsApi.claim(lead.id);
+            const updatedLead = res.data;
+            setLeads((current) => current.map((x) => (x.id === lead.id ? { ...x, ...updatedLead } : x)));
+        } catch (err) {
+            alert(err.response?.data?.message || 'Не удалось взять заявку в работу');
+        }
+    };
+
+    const confirmLead = async (lead) => {
+        try {
+            const res = await leadsApi.confirm(lead.id);
+            const updatedLead = res.data;
+            setLeads((current) => current.map((x) => (x.id === lead.id ? { ...x, ...updatedLead } : x)));
+        } catch (err) {
+            alert(err.response?.data?.message || 'Не удалось подтвердить заявку');
+        }
+    };
+
     const deleteLead = async (l) => {
-        if (!confirm('Удалить заявку?')) return;
-        await leadsApi.delete(l.id);
-        loadAll();
+        setConfirmModal({
+            isOpen: true,
+            title: 'Удалить заявку?',
+            body: `Заявка от: ${l.name}`,
+            confirmText: 'Удалить',
+            danger: true,
+            onConfirm: async () => {
+                await leadsApi.delete(l.id);
+                setConfirmModal({ isOpen: false });
+                loadAll();
+            },
+        });
     };
 
     // ─── Error helper ───────────────────────────────
@@ -443,7 +515,7 @@ export default function AdminDashboard() {
                                         <div className="lead-contact">
                                             <span className="lead-contact-name">{lead.name}</span>
                                             <span className="lead-contact-detail">{lead.email}</span>
-                                            <span className="lead-contact-detail">{lead.phone}</span>
+                                            <span className="lead-contact-detail">{lead.phone || 'Телефон скрыт'}</span>
                                         </div>
                                         <div className="lead-info">
                                             <div className="lead-info-item">
@@ -471,6 +543,16 @@ export default function AdminDashboard() {
                                             ))}
                                         </select>
                                         <div className="lead-action-buttons">
+                                            {(lead.status === 'new' || (lead.status === 'in_progress' && !lead.phone)) && (
+                                                <button className="btn btn-sm btn-outline" type="button" onClick={() => claimLead(lead)}>
+                                                    ▶️ Начать
+                                                </button>
+                                            )}
+                                            {(lead.status === 'in_progress' && lead.phone) && (
+                                                <button className="btn btn-sm btn-primary" type="button" onClick={() => confirmLead(lead)}>
+                                                    ✅ Подтвердить
+                                                </button>
+                                            )}
                                             <button className="btn btn-sm btn-outline" type="button" onClick={() => openLeadEdit(lead)}>✏️</button>
                                             <button className="btn btn-sm btn-danger" type="button" onClick={() => deleteLead(lead)}>🗑️</button>
                                         </div>
@@ -511,6 +593,7 @@ export default function AdminDashboard() {
                                 <select value={form.role || 'user'} onChange={(e) => update('role', e.target.value)}>
                                     <option value="user">user</option>
                                     <option value="admin">admin</option>
+                                    <option value="super_admin">super_admin</option>
                                 </select>
                             </div>
                             <div className="form-group">
@@ -595,6 +678,7 @@ export default function AdminDashboard() {
                             <select value={form.status || 'new'} onChange={(e) => update('status', e.target.value)}>
                                 <option value="new">new</option>
                                 <option value="in_progress">in_progress</option>
+                                <option value="confirmed">confirmed</option>
                                 <option value="done">done</option>
                                 <option value="cancelled">cancelled</option>
                             </select>
@@ -651,6 +735,33 @@ export default function AdminDashboard() {
                     </form>
                 </Modal>
             )}
+
+            {/* Confirm Modal */}
+            <Modal
+                isOpen={!!confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false })}
+                title={confirmModal.title || 'Подтверждение'}
+            >
+                <p style={{ marginTop: 0 }}>{confirmModal.body || 'Вы уверены?'}</p>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                    <button className="btn btn-outline" type="button" onClick={() => setConfirmModal({ isOpen: false })}>
+                        Отмена
+                    </button>
+                    <button
+                        className={`btn ${confirmModal.danger ? 'btn-danger' : 'btn-primary'}`}
+                        type="button"
+                        onClick={async () => {
+                            try {
+                                await confirmModal.onConfirm?.();
+                            } catch (err) {
+                                alert(err.response?.data?.message || err.message || 'Ошибка');
+                            }
+                        }}
+                    >
+                        {confirmModal.confirmText || 'Ок'}
+                    </button>
+                </div>
+            </Modal>
         </div>
     );
 }

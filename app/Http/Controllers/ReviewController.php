@@ -25,7 +25,7 @@ class ReviewController extends Controller
         // Verify user has a completed lead for this service
         $hasCompletedLead = Lead::where('user_id', $userId)
             ->where('service_id', $serviceId)
-            ->where('status', 'done')
+            ->whereHas('leadStatus', fn ($q) => $q->where('name', 'done'))
             ->exists();
 
         if (!$hasCompletedLead) {

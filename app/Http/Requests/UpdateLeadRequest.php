@@ -31,6 +31,7 @@ class UpdateLeadRequest extends FormRequest
             'message' => 'nullable|string',
             'service_id' => 'sometimes|required|exists:services,id',
             'lead_status_id' => 'nullable|exists:lead_statuses,id',
+            'status' => 'nullable|string|in:new,in_progress,confirmed,done,cancelled',
         ];
     }
 
@@ -47,6 +48,7 @@ class UpdateLeadRequest extends FormRequest
             'service_id.required' => 'Выберите интересующую вас услугу',
             'service_id.exists' => 'Выбранная услуга не найдена',
             'lead_status_id.exists' => 'Указан неверный статус заявки',
+            'status.in' => 'Указан неверный статус заявки',
         ];
     }
 }

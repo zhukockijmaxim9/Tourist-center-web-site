@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import Account from './pages/Account';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -31,7 +32,7 @@ function GuestRoute({ children }) {
     }
 
     if (user) {
-        return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} />;
+        return <Navigate to="/account" />;
     }
 
     return children;
@@ -46,6 +47,10 @@ function AppRoutes() {
                     <Route path="/" element={<Landing />} />
                     <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
                     <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+                    <Route
+                        path="/account"
+                        element={<ProtectedRoute><Account /></ProtectedRoute>}
+                    />
                     <Route
                         path="/dashboard"
                         element={<ProtectedRoute><UserDashboard /></ProtectedRoute>}
@@ -64,13 +69,13 @@ function AppRoutes() {
 const App = () => {
     return (
         <HashRouter>
-            <AuthProvider>
-                <ThemeProvider>
+            <ThemeProvider>
+                <AuthProvider>
                     <ErrorBoundary>
                         <AppRoutes />
                     </ErrorBoundary>
-                </ThemeProvider>
-            </AuthProvider>
+                </AuthProvider>
+            </ThemeProvider>
         </HashRouter>
     );
 };

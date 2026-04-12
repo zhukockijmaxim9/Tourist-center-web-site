@@ -1,0 +1,66 @@
+// Ключевые кадры для «живых» появлений блоков (подключается из app.scss один раз).
+
+@keyframes motion-fade-up {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 26px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes motion-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes motion-card-rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes motion-hero-orbit {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.32;
+    }
+
+    50% {
+        transform: scale(1.07);
+        opacity: 0.42;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing .hero-content > *,
+    .landing .hero-orb,
+    .landing .services-section__head,
+    .landing .services-filter,
+    .landing .services-filter__heading,
+    .landing .service-showcase,
+    .landing .section-cta,
+    .auth-card,
+    .dashboard,
+    .modal-overlay,
+    .modal-content,
+    .modal-content--booking {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

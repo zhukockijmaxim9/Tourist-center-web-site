@@ -33,57 +33,79 @@ export default function Register() {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                <h1>Регистрация</h1>
-                <p className="auth-subtitle">Создайте новый аккаунт</p>
+                <header className="auth-form__head">
+                    <h1 className="auth-form__title">Регистрация</h1>
+                    <p className="auth-form__subtitle">Создайте новый аккаунт</p>
+                </header>
 
-                {error && <div className="alert alert-error">{error}</div>}
+                {error && (
+                    <div className="auth-form__alert auth-form__alert--error" role="alert">
+                        {error}
+                    </div>
+                )}
 
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="reg-name">Имя</label>
+                <form className="auth-form" onSubmit={handleSubmit} noValidate>
+                    <div className="auth-form__field">
+                        <label className="auth-form__label" htmlFor="reg-name">
+                            Имя
+                        </label>
                         <input
                             id="reg-name"
+                            className="auth-form__control"
                             type="text"
                             value={form.name}
                             onChange={(e) => update('name', e.target.value)}
                             placeholder="Иван Иванов"
                             required
+                            autoComplete="name"
                         />
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="reg-email">Email</label>
+                    <div className="auth-form__field">
+                        <label className="auth-form__label" htmlFor="reg-email">
+                            Email
+                        </label>
                         <input
                             id="reg-email"
+                            className="auth-form__control"
                             type="email"
                             value={form.email}
                             onChange={(e) => update('email', e.target.value)}
                             placeholder="example@mail.com"
                             required
+                            autoComplete="email"
                         />
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="reg-phone">Телефон</label>
+                    <div className="auth-form__field">
+                        <label className="auth-form__label" htmlFor="reg-phone">
+                            Телефон
+                        </label>
                         <input
                             id="reg-phone"
-                            type="text"
+                            className="auth-form__control"
+                            type="tel"
                             value={form.phone}
                             onChange={(e) => update('phone', e.target.value)}
                             placeholder="+7 999 123 45 67"
+                            autoComplete="tel"
                         />
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="reg-password">Пароль</label>
+                    <div className="auth-form__field">
+                        <label className="auth-form__label" htmlFor="reg-password">
+                            Пароль
+                        </label>
                         <input
                             id="reg-password"
+                            className="auth-form__control"
                             type="password"
                             value={form.password}
                             onChange={(e) => update('password', e.target.value)}
                             placeholder="Минимум 6 символов"
                             required
+                            autoComplete="new-password"
                         />
                     </div>
-                    <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                        {loading ? 'Создание...' : 'Зарегистрироваться'}
+                    <button type="submit" className="auth-form__submit" disabled={loading}>
+                        {loading ? 'Создание…' : 'Зарегистрироваться'}
                     </button>
                 </form>
 

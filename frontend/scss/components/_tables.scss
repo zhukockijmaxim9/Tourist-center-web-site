@@ -7,11 +7,13 @@
     background: $bg-card;
     box-shadow: $shadow;
     backdrop-filter: blur(10px);
+    font-family: $font-sans;
 }
 
 .data-table {
     width: 100%;
     border-collapse: collapse;
+    font-family: $font-sans;
     font-size: 1.4rem;
 
     th {
@@ -55,6 +57,7 @@
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
+    font-family: $font-sans;
     color: $text-muted;
     font-size: 1.6rem;
     background: $bg-card;

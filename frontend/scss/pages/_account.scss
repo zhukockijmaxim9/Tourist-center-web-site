@@ -1,0 +1,752 @@
+@use "../abstracts/variables" as *;
+
+.account-page {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 2.8rem clamp(1.6rem, 3vw, 2.8rem) 4.8rem;
+    display: grid;
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    gap: clamp(2rem, 4vw, 3.2rem);
+    align-items: start;
+    animation: motion-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.account-sidebar {
+    position: sticky;
+    top: 92px;
+    border-radius: $radius-xl;
+    border: 1px solid $glass-border;
+    background: $bg-card;
+    box-shadow: $shadow;
+    padding: 2rem 1.8rem 2.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.account-sidebar__user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1.6rem;
+    margin-bottom: 1.6rem;
+    border-bottom: 1px solid $glass-border;
+}
+
+.account-sidebar__avatar {
+    width: 4.8rem;
+    height: 4.8rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Athena", "Raleway", system-ui, sans-serif;
+    font-size: 1.85rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.account-sidebar__avatar--img {
+    padding: 0;
+    overflow: hidden;
+    border-color: $glass-border;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.account-sidebar__who {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.account-sidebar__who-name {
+    font-weight: 700;
+    font-size: 1.45rem;
+    color: $text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-sidebar__who-email {
+    font-size: 1.2rem;
+    color: $text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-sidebar__head {
+    margin-bottom: 1.6rem;
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid $glass-border;
+}
+
+.account-sidebar__eyebrow {
+    font-family: "Athena", "Raleway", system-ui, sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: $text-muted;
+    margin: 0 0 0.6rem;
+}
+
+.account-sidebar__title {
+    font-family: "Literature Decor", "Times New Roman", serif;
+    font-size: clamp(2.2rem, 3.5vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1.15;
+    color: $text-primary;
+    margin: 0 0 0.5rem;
+}
+
+.account-sidebar__sub {
+    margin: 0;
+    font-size: 1.35rem;
+    color: $text-secondary;
+    line-height: 1.45;
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.account-nav__link {
+    display: block;
+    padding: 1rem 1.2rem;
+    border-radius: $radius;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: $text-secondary;
+    text-decoration: none;
+    transition: $transition;
+    border: 1px solid transparent;
+
+    &:hover {
+        color: $text-primary;
+        background: $hover-bg;
+    }
+
+    &.active {
+        color: $text-primary;
+        background: rgba($primary, 0.1);
+        border-color: rgba($primary, 0.22);
+    }
+}
+
+.account-nav__link--ghost {
+    margin-top: 0.6rem;
+    font-weight: 500;
+    color: $text-muted;
+    font-size: 1.3rem;
+
+    &:hover {
+        color: $text-secondary;
+    }
+
+    &.active {
+        background: transparent;
+        border-color: transparent;
+    }
+}
+
+.account-nav__text {
+    display: block;
+}
+
+.account-quick {
+    margin-top: 1.4rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid $glass-border;
+}
+
+.account-quick-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 1.2rem 1.25rem;
+    border-radius: $radius-lg;
+    border: 1px solid rgba($primary, 0.2);
+    background: linear-gradient(135deg, rgba($primary, 0.07), rgba($accent, 0.04));
+    text-decoration: none;
+    color: inherit;
+    transition: $transition;
+
+    &:hover {
+        border-color: rgba($primary, 0.35);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+}
+
+[data-theme="dark"] .account-quick-card {
+    background: linear-gradient(145deg, rgba(232, 229, 214, 0.06), rgba(0, 0, 0, 0.15));
+
+    &:hover {
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+    }
+}
+
+.account-quick-card__label {
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: $text-primary;
+}
+
+.account-quick-card__hint {
+    font-size: 1.2rem;
+    color: $text-muted;
+    line-height: 1.4;
+}
+
+.account-quick-card__go {
+    margin-top: 0.35rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $primary;
+}
+
+[data-theme="dark"] .account-quick-card__go {
+    color: rgba(218, 212, 192, 0.9);
+}
+
+.account-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    color: $text-muted;
+    margin-bottom: 1.2rem;
+
+    a {
+        color: $text-secondary;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s ease;
+
+        &:hover {
+            color: $primary;
+        }
+    }
+}
+
+.account-breadcrumb__sep {
+    opacity: 0.45;
+    user-select: none;
+}
+
+.account-breadcrumb__current {
+    color: $text-primary;
+    font-weight: 600;
+}
+
+.account-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    min-width: 0;
+}
+
+.account-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+    padding: 2.6rem 2.8rem;
+    border-radius: $radius-xl;
+    border: 1px solid $glass-border;
+    background: linear-gradient(135deg, rgba($primary, 0.09), rgba($accent, 0.06));
+    box-shadow: $shadow;
+}
+
+.account-hero--compact {
+    padding: 2.2rem 2.6rem;
+}
+
+.account-hero__row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .account-hero__row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .account-hero__row .account-hero__hint {
+        margin: 0;
+        flex: 1;
+        min-width: 12rem;
+    }
+}
+
+[data-theme="dark"] .account-hero {
+    background: linear-gradient(145deg, rgba(232, 229, 214, 0.06), rgba(30, 33, 30, 0.95));
+}
+
+.account-hero__text {
+    flex: 1;
+    min-width: 0;
+}
+
+.account-hero__accent {
+    font-family: "Literature Decor", "Times New Roman", serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: $primary;
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+}
+
+[data-theme="dark"] .account-hero__accent {
+    color: rgba(218, 212, 192, 0.85);
+}
+
+.account-hero__name {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: clamp(2.2rem, 3vw, 2.8rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.4rem;
+    color: $text-primary;
+}
+
+.account-hero__email {
+    margin: 0 0 1rem;
+    font-size: 1.4rem;
+    color: $text-secondary;
+    word-break: break-word;
+}
+
+.account-hero__hint {
+    margin: 0;
+    font-size: 1.35rem;
+    color: $text-muted;
+    line-height: 1.5;
+    max-width: 40em;
+}
+
+.account-role-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 1.2rem;
+    border-radius: 100px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid $glass-border;
+    background: $bg-card;
+    color: $text-secondary;
+}
+
+.account-role-pill[data-role="admin"] {
+    border-color: rgba($warning, 0.35);
+    color: #b45309;
+    background: rgba($warning, 0.1);
+}
+
+.account-role-pill[data-role="super_admin"] {
+    border-color: rgba($danger, 0.35);
+    color: $danger;
+    background: rgba($danger, 0.08);
+}
+
+[data-theme="dark"] .account-role-pill {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .account-role-pill[data-role="admin"] {
+    color: #e8c48a;
+}
+
+[data-theme="dark"] .account-role-pill[data-role="super_admin"] {
+    color: #f0a8a8;
+}
+
+.account-avatar-large--form {
+    width: 10rem;
+    height: 10rem;
+    margin: 0 auto 0.6rem;
+}
+
+.account-avatar-large {
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .account-avatar-large {
+    border-color: rgba(232, 229, 214, 0.2);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.account-avatar-large__initial {
+    font-family: "Athena", "Raleway", system-ui, sans-serif;
+    font-size: 3.6rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    line-height: 1;
+}
+
+.account-avatar-large--has-img {
+    padding: 0;
+    background: $bg-surface !important;
+}
+
+.account-avatar-large__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.account-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.2rem;
+}
+
+.account-stat-card {
+    border-radius: $radius-lg;
+    border: 1px solid $glass-border;
+    background: $bg-card;
+    padding: 1.6rem 1.8rem;
+    box-shadow: $shadow;
+}
+
+.account-stat-card--muted {
+    background: $bg-surface;
+}
+
+.account-stat-card__value {
+    display: block;
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+}
+
+.account-stat-card__value--sm {
+    font-size: 1.65rem;
+    font-weight: 700;
+}
+
+.account-stat-card__label {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 1.25rem;
+    color: $text-muted;
+    font-weight: 600;
+}
+
+.account-card {
+    border-radius: $radius-xl;
+    border: 1px solid $glass-border;
+    background: $bg-card;
+    padding: 2.4rem 2.6rem;
+    box-shadow: $shadow;
+}
+
+.account-card__head {
+    margin-bottom: 1.6rem;
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid $glass-border;
+}
+
+.account-card__title {
+    font-family: "Literature Decor", "Times New Roman", serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    margin: 0 0 0.5rem;
+    color: $text-primary;
+}
+
+.account-card__lead {
+    margin: 0;
+    font-size: 1.4rem;
+    color: $text-secondary;
+    line-height: 1.55;
+}
+
+.account-alert {
+    padding: 1rem 1.2rem;
+    border-radius: $radius;
+    font-size: 1.35rem;
+    margin-bottom: 1.2rem;
+}
+
+.account-alert--ok {
+    background: rgba($success, 0.12);
+    border: 1px solid rgba($success, 0.28);
+    color: $primary-dark;
+}
+
+.account-alert--err {
+    background: rgba($danger, 0.1);
+    border: 1px solid rgba($danger, 0.25);
+    color: $danger;
+}
+
+[data-theme="dark"] .account-alert--ok {
+    color: rgba(232, 229, 214, 0.95);
+    border-color: rgba(184, 180, 168, 0.25);
+    background: rgba(232, 229, 214, 0.06);
+}
+
+.account-form-split {
+    display: grid;
+    gap: 2.4rem;
+    grid-template-columns: 1fr;
+    align-items: start;
+}
+
+@media (min-width: 840px) {
+    .account-form-split {
+        grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+        gap: 2.8rem;
+    }
+}
+
+.account-form-split__visual {
+    text-align: center;
+    padding: 1.2rem 1rem;
+    border-radius: $radius-lg;
+    background: $bg-surface;
+    border: 1px solid $glass-border;
+}
+
+.account-form-split__kicker {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: $text-muted;
+}
+
+.account-form-split__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    min-width: 0;
+}
+
+.account-preset-label {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $text-muted;
+    text-align: center;
+}
+
+.account-form-split__visual .account-preset-row {
+    justify-content: center;
+}
+
+.account-form-split__visual .account-avatar-block__actions {
+    justify-content: center;
+}
+
+.account-form-split__visual .account-avatar-block__hint--tight {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.account-form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.6rem;
+    margin-bottom: 0;
+}
+
+.account-form__grid--tight {
+    gap: 1.2rem;
+}
+
+.account-field__input--readonly {
+    opacity: 0.92;
+    cursor: default;
+    background: rgba($primary, 0.04);
+}
+
+[data-theme="dark"] .account-field__input--readonly {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.account-save-btn {
+    min-width: 16rem;
+    border-radius: 100px;
+    font-weight: 600;
+}
+
+.account-form-split__fields .account-form__footer {
+    justify-content: flex-start;
+    padding-top: 0.25rem;
+    margin-top: auto;
+}
+
+.account-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.account-field__label {
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $text-muted;
+}
+
+.account-field__input {
+    width: 100%;
+    padding: 0.95rem 1.1rem;
+    border-radius: $radius;
+    border: 1px solid $glass-border;
+    background: $bg-surface;
+    color: $text-primary;
+    font-size: 1.45rem;
+    font-family: "Raleway", system-ui, sans-serif;
+    transition: $transition;
+
+    &:focus {
+        outline: none;
+        border-color: rgba($primary, 0.45);
+        box-shadow: 0 0 0 3px rgba($primary, 0.12);
+    }
+
+    &::placeholder {
+        color: $text-muted;
+    }
+}
+
+.account-avatar-block {
+    margin-bottom: 2rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid $glass-border;
+}
+
+.account-avatar-block__hint {
+    margin: 0.4rem 0 1.2rem;
+    font-size: 1.3rem;
+    color: $text-muted;
+    line-height: 1.45;
+}
+
+.account-avatar-block__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 1.4rem;
+}
+
+.account-file-btn {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.account-file-btn__input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    font-size: 0;
+}
+
+.account-preset-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.account-preset {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: $transition;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+    &:hover {
+        transform: scale(1.06);
+    }
+
+    &.is-active {
+        border-color: $text-primary;
+        box-shadow: 0 0 0 2px rgba($primary, 0.25);
+    }
+}
+
+[data-theme="dark"] .account-preset.is-active {
+    border-color: rgba(232, 229, 214, 0.75);
+}
+
+.account-form__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 0.5rem;
+}
+
+@media (max-width: 900px) {
+    .account-page {
+        grid-template-columns: 1fr;
+    }
+
+    .account-sidebar {
+        position: static;
+    }
+
+    .account-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .account-nav__link {
+        flex: 1 1 auto;
+        text-align: center;
+        min-width: 120px;
+    }
+
+    .account-nav__link--ghost {
+        flex: 1 1 100%;
+        text-align: center;
+        margin-top: 0.4rem;
+    }
+}

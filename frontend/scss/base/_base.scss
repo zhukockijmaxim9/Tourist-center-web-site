@@ -13,7 +13,7 @@ html {
 
 body {
     font-size: 1.6rem;
-    font-family: 'Figtree', 'Inter', system-ui, sans-serif;
+    font-family: $font-sans;
     background: $bg-dark;
     color: $text-primary;
     line-height: 1.6;
@@ -25,4 +25,12 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    font-family: $font-sans;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
 }

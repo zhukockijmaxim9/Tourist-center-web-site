@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { servicesApi, leadsApi, categoriesApi, reviewsApi } from '../api';
 import Modal from '../components/Modal';
+import { getServicePhotoUrl, serviceImageOnError } from '../utils/serviceCardImage';
 
 export default function Landing() {
     const { user } = useAuth();
@@ -13,14 +14,20 @@ export default function Landing() {
     const [showServiceModal, setShowServiceModal] = useState(false);
     const [selectedService, setSelectedService] = useState(null);
     const [serviceDetails, setServiceDetails] = useState(null);
-    const [form, setForm] = useState({ name: '', email: '', phone: '', message: '', service_id: '' });
+    const [form, setForm] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        message: '',
+        service_id: '',
+    });
     const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        servicesApi.getAll().then(res => setServices(res.data)).catch(err => console.error('Ошибка загрузки услуг:', err));
-        categoriesApi.getAll().then(res => setCategories(res.data)).catch(err => console.error('Ошибка загрузки категорий:', err));
+        servicesApi.getAll().then((res) => setServices(res.data)).catch((err) => console.error('Ошибка загрузки услуг:', err));
+        categoriesApi.getAll().then((res) => setCategories(res.data)).catch((err) => console.error('Ошибка загрузки категорий:', err));
     }, []);
 
     const openServiceDetails = async (service) => {
@@ -43,7 +50,6 @@ export default function Landing() {
             });
             alert('Спасибо! Ваш отзыв отправлен на модерацию.');
             setReviewForm({ rating: 5, comment: '' });
-            // Refresh service details to update can_review / has_reviewed
             const res = await servicesApi.getOne(selectedService.id);
             setServiceDetails(res.data);
         } catch (err) {
@@ -68,7 +74,13 @@ export default function Landing() {
         e.preventDefault();
         setError('');
         try {
-            await leadsApi.create(form);
+            await leadsApi.create({
+                name: form.name,
+                email: form.email,
+                phone: form.phone,
+                message: form.message.trim() || null,
+                service_id: form.service_id,
+            });
             setSuccess(true);
             setTimeout(() => {
                 setShowModal(false);
@@ -86,32 +98,41 @@ export default function Landing() {
 
     const update = (key, val) => setForm({ ...form, [key]: val });
 
+    const filteredServices = services.filter(
+        (s) => !selectedCategory || s.category_id === selectedCategory,
+    );
+
     return (
         <div className="landing">
-            {/* Hero */}
-            <section className="hero">
+            <section className="hero hero--fade-white">
+                <div className="hero__photo-stack" aria-hidden="true">
+                    <div className="hero__photo hero__photo--light" />
+                    <div className="hero__photo hero__photo--dark" />
+                </div>
                 <div className="hero-content">
+                    <div className="hero-brand">
+                        <p className="hero-brand__text">ELVA</p>
+                    </div>
                     <h1 className="hero-title">
-                        Откройте мир <span className="accent">путешествий</span>
+                        где время замедляется, а пространство наполняется спокойствием.
                     </h1>
                     <p className="hero-subtitle">
-                        Туристический центр — ваш проводник к незабываемым впечатлениям.
-                        Экскурсии, туры и приключения ждут вас!
+                        where time slows down and space becomes peaceful.
                     </p>
                     <div className="hero-actions">
                         {user ? (
                             <Link
                                 to={user.role === 'admin' ? '/admin' : '/dashboard'}
-                                className="btn btn-primary btn-lg"
+                                className="btn btn-lg btn--hero-wire"
                             >
                                 Перейти в личный кабинет
                             </Link>
                         ) : (
                             <>
-                                <Link to="/register" className="btn btn-primary btn-lg">
+                                <Link to="/register" className="btn btn-lg btn--hero-wire">
                                     Начать сейчас
                                 </Link>
-                                <Link to="/login" className="btn btn-outline btn-lg">
+                                <Link to="/login" className="btn btn-lg btn--hero-wire">
                                     Войти
                                 </Link>
                             </>
@@ -125,73 +146,152 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* Categories Filter */}
-            {categories.length > 0 && (
-                <div className="category-filter">
-                    <div className="category-tabs">
-                        <button 
-                            className={`category-tab ${selectedCategory === null ? 'active' : ''}`}
-                            onClick={() => setSelectedCategory(null)}
-                        >
-                            Все
-                        </button>
-                        {categories.map(c => (
-                            <button 
-                                key={c.id}
-                                className={`category-tab ${selectedCategory === c.id ? 'active' : ''}`}
-                                onClick={() => setSelectedCategory(c.id)}
-                            >
-                                {c.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
             {/* Services */}
             {services.length > 0 && (
-                <section className="section">
-                    <h2 className="section-title">Наши услуги</h2>
-                    <div className="services-grid">
-                        {services.filter(s => !selectedCategory || s.category_id === selectedCategory).map((s) => (
-                            <div key={s.id} className="service-card" onClick={() => openServiceDetails(s)} style={{ cursor: 'pointer' }}>
-                                <div className="service-card-header">
-                                    <div className="service-card-icon">🌍</div>
-                                    <span className="service-category-badge">
-                                        {s.category?.name || 'Без категории'}
-                                    </span>
-                                </div>
-                                <div className="service-card-body">
-                                    <h3>{s.name}</h3>
-                                    <p>{s.description || 'Описание скоро появится'}</p>
-                                </div>
-                                <div className="service-card-footer">
-                                    {s.price && (
-                                        <div className="service-price">
-                                            {Number(s.price).toLocaleString('ru-RU')} ₽
-                                        </div>
-                                    )}
-                                    <div className="service-card-actions">
-                                        <span className={`badge badge-${s.status === 'active' ? 'success' : 'muted'}`}>
-                                            {s.status === 'active' ? 'Доступно' : 'Недоступно'}
-                                        </span>
-                                        {s.status === 'active' && (
+                <section
+                    className="services-section"
+                    aria-labelledby={
+                        categories.length > 0
+                            ? 'services-heading services-filter-heading'
+                            : 'services-heading'
+                    }
+                >
+                    <div className="services-section__inner">
+
+                        <div className="services-section__head">
+                            <h2 id="services-heading" className="services-section__title">
+                                Наши услуги
+                            </h2>
+                            <span className="services-section__rule" aria-hidden="true" />
+                        </div>
+                        {categories.length > 0 && (
+                            <div
+                                className="services-filter"
+                                role="toolbar"
+                                aria-label="Категории услуг"
+                            >
+                                <div className="services-filter__track">
+                                    <div className="services-filter__chips">
+                                        <button
+                                            type="button"
+                                            className={`services-filter__chip ${
+                                                selectedCategory === null ? 'is-active' : ''
+                                            }`}
+                                            onClick={() => setSelectedCategory(null)}
+                                            aria-pressed={selectedCategory === null}
+                                        >
+                                            Все
+                                        </button>
+                                        {categories.map((c) => (
                                             <button
-                                                className="btn btn-primary btn-sm"
-                                                onClick={(e) => { e.stopPropagation(); openCreate(s); }}
+                                                type="button"
+                                                key={c.id}
+                                                className={`services-filter__chip ${
+                                                    selectedCategory === c.id ? 'is-active' : ''
+                                                }`}
+                                                onClick={() => setSelectedCategory(c.id)}
+                                                aria-pressed={selectedCategory === c.id}
                                             >
-                                                Заказать
+                                                {c.name}
                                             </button>
-                                        )}
+                                        ))}
                                     </div>
                                 </div>
+                                <h3
+                                    key={
+                                        selectedCategory === null
+                                            ? 'filter-all'
+                                            : `filter-${selectedCategory}`
+                                    }
+                                    className="services-filter__heading"
+                                    id="services-filter-heading"
+                                    aria-live="polite"
+                                >
+                                    {selectedCategory === null
+                                        ? 'Все направления'
+                                        : categories.find((c) => c.id === selectedCategory)?.name ??
+                                          'Категория'}
+                                </h3>
                             </div>
-                        ))}
+                        )}
+                        {filteredServices.length === 0 ? (
+                            <p className="services-section__empty">
+                                В этой категории пока нет услуг.
+                            </p>
+                        ) : (
+                            <div className="services-grid services-grid--showcase">
+                                {filteredServices.map((s) => (
+                                    <article
+                                        key={s.id}
+                                        className="service-showcase"
+                                        onClick={() => openServiceDetails(s)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                openServiceDetails(s);
+                                            }
+                                        }}
+                                    >
+                                        <div className="service-showcase__media service-showcase__media--photo">
+                                            <img
+                                                className="service-showcase__photo"
+                                                src={getServicePhotoUrl(s)}
+                                                alt=""
+                                                loading="lazy"
+                                                onError={serviceImageOnError}
+                                            />
+                                            <span
+                                                className={`service-showcase__badge service-showcase__badge--overlay ${
+                                                    s.status === 'active'
+                                                        ? 'service-showcase__badge--on'
+                                                        : 'service-showcase__badge--off'
+                                                }`}
+                                            >
+                                                {s.status === 'active' ? 'Доступно' : 'Недоступно'}
+                                            </span>
+                                            <span className="service-showcase__category">
+                                                {s.category?.name || 'Без категории'}
+                                            </span>
+                                        </div>
+                                        <h3 className="service-showcase__title">{s.name}</h3>
+                                        <p className="service-showcase__desc">
+                                            {s.description || 'Описание скоро появится'}
+                                        </p>
+                                        <div className="service-showcase__bottom">
+                                            {s.price ? (
+                                                <p className="service-showcase__price">
+                                                    {Number(s.price).toLocaleString('ru-RU')} ₽
+                                                </p>
+                                            ) : (
+                                                <p className="service-showcase__price service-showcase__price--muted">
+                                                    Цена по запросу
+                                                </p>
+                                            )}
+                                            <div className="service-showcase__actions">
+                                                {s.status === 'active' && (
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-primary btn-sm btn--service-showcase"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openCreate(s);
+                                                        }}
+                                                    >
+                                                        Заказать
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </section>
             )}
 
-            {/* CTA */}
             {!user && (
                 <section className="section section-cta">
                     <h2>Готовы к приключениям?</h2>
@@ -202,50 +302,91 @@ export default function Landing() {
                 </section>
             )}
 
-            {/* Lead Modal */}
-            <Modal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                title="Оставить заявку"
-            >
+            <Modal isOpen={showModal} onClose={() => setShowModal(false)} variant="booking">
                 {success ? (
-                    <div className="alert alert-success">
-                        Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.
+                    <div className="booking-success">
+                        <h2 className="booking-success__title">Спасибо, что выбираете нас!</h2>
+                        <p className="booking-success__text">
+                            Наш менеджер свяжется с вами для подтверждения бронирования в течение 15–30 минут
+                        </p>
                     </div>
                 ) : (
                     <>
-                        {error && <div className="alert alert-error">{error}</div>}
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label>Имя</label>
-                                <input value={form.name} onChange={(e) => update('name', e.target.value)} required placeholder="Как к вам обращаться?" />
-                            </div>
-                            <div className="form-group">
-                                <label>Email</label>
-                                <input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} required placeholder="example@mail.com" />
-                            </div>
-                            <div className="form-group">
-                                <label>Телефон</label>
-                                <input value={form.phone} onChange={(e) => update('phone', e.target.value)} required placeholder="+7 (___) ___-__-__" />
-                            </div>
-                            <div className="form-group">
-                                <label>Сообщение</label>
-                                <textarea 
-                                    value={form.message} 
-                                    onChange={(e) => update('message', e.target.value)} 
-                                    rows={3} 
-                                    placeholder="Ваши пожелания или вопросы"
+                        <header className="booking-form__head">
+                            <h2 className="booking-form__title">Бронирование</h2>
+                            <p className="booking-form__subtitle">
+                                Заполните форму, и мы свяжемся с вами для подтверждения бронирования в течение
+                                15–30 минут
+                            </p>
+                        </header>
+                        {error && <div className="booking-form__alert booking-form__alert--error">{error}</div>}
+                        <form className="booking-form" onSubmit={handleSubmit} noValidate>
+                            <div className="booking-form__field">
+                                <label className="booking-form__label" htmlFor="booking-name">
+                                    ФИО
+                                </label>
+                                <input
+                                    id="booking-name"
+                                    className="booking-form__control"
+                                    value={form.name}
+                                    onChange={(e) => update('name', e.target.value)}
+                                    required
+                                    autoComplete="name"
                                 />
                             </div>
-                            <button type="submit" className="btn btn-primary btn-block">
-                                Отправить заявку
+                            <div className="booking-form__field">
+                                <label className="booking-form__label" htmlFor="booking-email">
+                                    Электронная почта
+                                </label>
+                                <input
+                                    id="booking-email"
+                                    className="booking-form__control"
+                                    type="email"
+                                    value={form.email}
+                                    onChange={(e) => update('email', e.target.value)}
+                                    required
+                                    autoComplete="email"
+                                />
+                            </div>
+                            <div className="booking-form__field">
+                                <label className="booking-form__label" htmlFor="booking-phone">
+                                    Номер телефона
+                                </label>
+                                <div className="booking-form__phone-row">
+                                    <span className="booking-form__phone-prefix" aria-hidden="true">
+                                        +7
+                                    </span>
+                                    <input
+                                        id="booking-phone"
+                                        className="booking-form__control booking-form__control--phone"
+                                        value={form.phone}
+                                        onChange={(e) => update('phone', e.target.value)}
+                                        required
+                                        autoComplete="tel"
+                                        placeholder=""
+                                    />
+                                </div>
+                            </div>
+                            <div className="booking-form__field">
+                                <label className="booking-form__label" htmlFor="booking-comment">
+                                    Комментарий
+                                </label>
+                                <textarea
+                                    id="booking-comment"
+                                    className="booking-form__control booking-form__control--textarea"
+                                    value={form.message}
+                                    onChange={(e) => update('message', e.target.value)}
+                                    rows={2}
+                                />
+                            </div>
+                            <button type="submit" className="booking-form__submit">
+                                оставить заявку
                             </button>
                         </form>
                     </>
                 )}
             </Modal>
 
-            {/* Service Details & Reviews Modal */}
             <Modal
                 isOpen={showServiceModal}
                 onClose={() => setShowServiceModal(false)}
@@ -253,6 +394,14 @@ export default function Landing() {
             >
                 {serviceDetails && (
                     <div className="service-details">
+                        <div className="service-details__media">
+                            <img
+                                src={getServicePhotoUrl(serviceDetails)}
+                                alt=""
+                                loading="lazy"
+                                onError={serviceImageOnError}
+                            />
+                        </div>
                         <p className="service-details-desc">{serviceDetails.description}</p>
 
                         {serviceDetails.price && (
@@ -261,7 +410,6 @@ export default function Landing() {
                             </div>
                         )}
 
-                        {/* Reviews Summary */}
                         <div className="reviews-section">
                             <div className="reviews-header">
                                 <h4>Отзывы клиентов</h4>
@@ -315,7 +463,6 @@ export default function Landing() {
                             </div>
                         </div>
 
-                        {/* Review Form — only for non-admin users with completed leads */}
                         {user && user.role !== 'admin' && serviceDetails.can_review && (
                             <form onSubmit={handleReviewSubmit} className="review-form">
                                 <h5>Оставить отзыв</h5>

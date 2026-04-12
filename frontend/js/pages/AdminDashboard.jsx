@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { usersApi, servicesApi, leadsApi, categoriesApi, reviewsApi } from '../api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
@@ -67,7 +68,6 @@ export default function AdminDashboard() {
 
     const update = (key, val) => setForm({ ...form, [key]: val });
 
-    // ─── Users ──────────────────────────────────────
     const userColumns = [
         { key: 'id', label: 'ID' },
         { key: 'name', label: 'Имя' },
@@ -136,7 +136,6 @@ export default function AdminDashboard() {
         });
     };
 
-    // ─── Services ───────────────────────────────────
     const serviceColumns = [
         { key: 'id', label: 'ID' },
         { key: 'name', label: 'Название' },
@@ -195,7 +194,6 @@ export default function AdminDashboard() {
         });
     };
 
-    // ─── Categories ─────────────────────────────────
     const categoryColumns = [
         { key: 'id', label: 'ID' },
         { key: 'name', label: 'Название' },
@@ -247,7 +245,6 @@ export default function AdminDashboard() {
         });
     };
 
-    // ─── Reviews ────────────────────────────────────
     const reviewColumns = [
         { key: 'id', label: 'ID' },
         { key: 'service', label: 'Услуга', render: (v) => v?.name },
@@ -271,7 +268,6 @@ export default function AdminDashboard() {
         });
     };
 
-    // ─── Leads ──────────────────────────────────────
     const filteredLeads = leadStatusFilter === 'all'
         ? leads
         : leads.filter((l) => l.status === leadStatusFilter);
@@ -291,7 +287,6 @@ export default function AdminDashboard() {
         });
         setError('');
         setShowModal(true);
-        // Load notes
         try {
             const res = await leadsApi.getNotes(l.id);
             setLeadNotes(res.data);
@@ -378,7 +373,6 @@ export default function AdminDashboard() {
         });
     };
 
-    // ─── Error helper ───────────────────────────────
     const handleError = (err) => {
         const msg = err.response?.data?.errors;
         if (typeof msg === 'object') {
@@ -388,13 +382,17 @@ export default function AdminDashboard() {
         }
     };
 
-    // ─── Render ─────────────────────────────────────
     return (
         <div className="dashboard">
             <div className="dashboard-header animate-in">
                 <div>
                     <h1>Панель администратора</h1>
-                    <p className="text-muted">Управление пользователями, услугами и заявками</p>
+                    <p className="text-muted">
+                        Управление пользователями, услугами и заявками.{' '}
+                        <Link to="/account" className="dashboard-inline-link">
+                            Личный кабинет
+                        </Link>
+                    </p>
                 </div>
             </div>
 

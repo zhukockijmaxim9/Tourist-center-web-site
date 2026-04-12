@@ -43,7 +43,7 @@ class DemoDataSeeder extends Seeder
         'SPA-программа',
         'Ужин с дегустацией',
         'Фотопрогулка',
-        'Weekend-пакет',
+        'Уикенд-пакет',
         'Горный тур',
         'Речной круиз',
         'Исторический маршрут',
@@ -133,23 +133,89 @@ class DemoDataSeeder extends Seeder
     private function createServices(Generator $faker, Collection $categories, int $count): Collection
     {
         return collect(range(1, $count))->map(function (int $index) use ($faker, $categories, $count) {
-            $name = sprintf(
-                '%s %s',
-                self::SERVICE_ACTIVITIES[($index - 1) % count(self::SERVICE_ACTIVITIES)],
-                self::DESTINATIONS[($index - 1) % count(self::DESTINATIONS)]
-            );
+            $activity = self::SERVICE_ACTIVITIES[($index - 1) % count(self::SERVICE_ACTIVITIES)];
+            $destination = self::DESTINATIONS[($index - 1) % count(self::DESTINATIONS)];
+            $name = sprintf('%s %s', $activity, $destination);
 
             return Service::create([
                 'name' => $count > count(self::SERVICE_ACTIVITIES) * count(self::DESTINATIONS)
                     ? $name . ' #' . $index
                     : $name,
-                'description' => $faker->sentence(14),
+                'description' => self::buildServiceDescription($activity, $destination),
                 'category_id' => $categories->random()->id,
                 'price' => $faker->numberBetween(1800, 45000),
-                'image' => null,
+                'image' => self::resolveServiceCardImage($activity, $destination),
                 'status' => $index % 5 === 0 ? 'inactive' : 'active',
             ]);
         });
+    }
+
+    private static function buildServiceDescription(string $activity, string $destination): string
+    {
+        $d = $destination;
+
+        return match ($activity) {
+            'Пешеходная экскурсия' => "Пеший маршрут {$d}: улочки, факты о квартале и темп без спешки.",
+            'Авторский тур' => "Маршрут {$d} от ведущего: личные акценты, обход шумных мест и гибкий тайминг.",
+            'Семейный маршрут' => "Спокойный формат {$d}: короткие отрезки пути, паузы и ориентир на детей.",
+            'Панорамная поездка' => "Поездка {$d} с акцентом на виды из окна и остановками на смотровых точках.",
+            'Трансфер из аэропорта' => "Встреча в зоне прилёта и довоз {$d}; помощь с багажем и посадкой.",
+            'SPA-программа' => "Спа-ритуалы {$d}: подбор процедур при записи и время на отдых после блока.",
+            'Ужин с дегустацией' => "Вечер {$d}: несколько подач, напитки к блюдам и комментарий шефа или сомелье.",
+            'Фотопрогулка' => "Прогулка {$d} со съёмкой: ракурсы, свет и небольшая подборка кадров после съёмки.",
+            'Уикенд-пакет' => "Сборка на два дня {$d}: ключевые активности, переезды и окно без плотного графика.",
+            'Горный тур' => "Выезд {$d}: тропы средней сложности, сопровождение и упор на безопасность группы.",
+            'Речной круиз' => "Прогулка по воде {$d}: маршрут по течению, комментарий и палубный сервис.",
+            'Исторический маршрут' => "Хронология и памятные места {$d}: эпохи, события и ответы гида на вопросы.",
+            default => "{$activity} {$d}. Старт, длительность и точка встречи согласуем после заявки.",
+        };
+    }
+
+    private static function resolveServiceCardImage(string $activity, string $destination): string
+    {
+        $t = mb_strtolower($activity . ' ' . $destination, 'UTF-8');
+
+        if (str_contains($t, 'спа') || str_contains($t, 'spa')) {
+            return '/images/services/spa.png';
+        }
+        if (str_contains($t, 'ужин') || str_contains($t, 'дегустац')) {
+            return '/images/services/gourmet.png';
+        }
+        if (str_contains($t, 'речной') || str_contains($t, 'круиз')) {
+            return '/images/services/cruise.png';
+        }
+        if (str_contains($t, 'семейн') || str_contains($t, 'для семьи')) {
+            return '/images/services/family.png';
+        }
+        if (str_contains($t, 'фотопрогул')) {
+            return '/images/services/family.png';
+        }
+        if (str_contains($t, 'трансфер') || str_contains($t, 'аэропорт') || str_contains($t, 'вечернему центру')) {
+            return '/images/services/city-night.png';
+        }
+        if (str_contains($t, 'горн')) {
+            return '/images/services/lake.png';
+        }
+        if (str_contains($t, 'винодельн')) {
+            return '/images/services/vineyard.png';
+        }
+        if (str_contains($t, 'озёрн') || str_contains($t, 'панорам') || str_contains($t, 'побережь')) {
+            return '/images/services/lake.png';
+        }
+        if (str_contains($t, 'историческ')) {
+            return '/images/services/heritage.png';
+        }
+        if (str_contains($t, 'пешеходн') || str_contains($t, 'старому городу')) {
+            return '/images/services/heritage.png';
+        }
+        if (str_contains($t, 'авторск')) {
+            return '/images/services/map-tour.png';
+        }
+        if (str_contains($t, 'уикенд') || str_contains($t, 'для двоих')) {
+            return '/images/services/vineyard.png';
+        }
+
+        return '/images/services/map-tour.png';
     }
 
     private function createUsers(Generator $faker, int $count): Collection

@@ -20,7 +20,7 @@ html {
 
 body {
     font-size: 1.6rem;
-    font-family: 'Figtree', 'Inter', system-ui, sans-serif;
+    font-family: "Raleway", system-ui, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     line-height: 1.6;

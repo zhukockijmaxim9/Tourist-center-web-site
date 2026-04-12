@@ -1,68 +1,414 @@
 @use "../abstracts/variables" as *;
 
+$nav-ink: #414c41;
+$nav-ink-muted: rgba(65, 76, 65, 0.62);
+
 .navbar {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 100;
-    background: $glass;
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid $glass-border;
     height: 70px;
+    font-family: "Raleway", system-ui, sans-serif;
+    background: rgba(255, 252, 248, 0.97);
+    border-bottom: 1px solid rgba($nav-ink, 0.08);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+[data-theme="dark"] .navbar:not(.navbar--hero) {
+    background: rgba(24, 26, 23, 0.97);
+    border-bottom-color: $glass-border;
+}
+
+.navbar--hero {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+
+    .navbar-inner {
+        position: relative;
+        z-index: 1;
+    }
+
+    .navbar-brand {
+        color: rgba(255, 255, 255, 0.94);
+
+        &:hover {
+            color: #fff;
+        }
+
+        .navbar-brand__tag {
+            color: rgba(255, 255, 255, 0.55);
+        }
+    }
+
+    .navbar-link {
+        color: rgba(255, 255, 255, 0.78);
+
+        &:hover {
+            color: #fff;
+        }
+    }
+
+    .navbar-link--account {
+        color: rgba(255, 255, 255, 0.86);
+
+        &:hover {
+            color: #fff;
+        }
+    }
+
+    .navbar-link--quiet {
+        color: rgba(255, 255, 255, 0.58);
+
+        &:hover {
+            color: rgba(255, 255, 255, 0.95);
+        }
+    }
+
+    .navbar-icon-btn {
+        color: rgba(255, 255, 255, 0.82);
+        border-color: rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.04);
+
+        &:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.38);
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    .navbar-cta {
+        color: rgba(255, 255, 255, 0.96);
+        border-color: rgba(255, 255, 255, 0.38);
+        background: rgba(255, 255, 255, 0.1);
+
+        &:hover {
+            border-color: rgba(255, 255, 255, 0.52);
+            background: rgba(255, 255, 255, 0.16);
+        }
+    }
+
+    .navbar-link.navbar-link--guest {
+        color: rgba(255, 255, 255, 0.82);
+
+        &:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+    }
+
+    .nav-avatar {
+        border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .nav-avatar--preset {
+        color: rgba(255, 255, 255, 0.96);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+
+    .nav-avatar:not(.nav-avatar--preset):not(.nav-avatar--img) {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.18));
+        color: rgba(22, 26, 24, 0.88);
+    }
 }
 
 .navbar-inner {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2.4rem;
+    padding: 0 clamp(1.6rem, 4vw, 2.8rem);
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 2rem;
+    font-family: "Raleway", system-ui, sans-serif;
+
+    a,
+    button {
+        font-family: "Raleway", system-ui, sans-serif;
+    }
 }
 
-.navbar-logo {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+.navbar-brand {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.75rem;
     text-decoration: none;
+    color: $nav-ink;
+    transition: color 0.22s ease, opacity 0.22s ease;
+
+    &:hover {
+        opacity: 0.88;
+    }
+}
+
+// Вордмарк центра — Athena, только начертание 400 в @font-face.
+.navbar-brand__word {
+    font-family: "Athena", "Raleway", system-ui, sans-serif;
+    font-size: clamp(2rem, 2.8vw, 2.65rem);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+// Подпись «главная» — Raleway, контраст к Athena.
+.navbar-brand__tag {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.05rem;
+    font-weight: 300;
+    letter-spacing: 0.28em;
+    text-transform: lowercase;
+    color: $nav-ink-muted;
+    line-height: 1;
+}
+
+[data-theme="dark"] .navbar:not(.navbar--hero) .navbar-brand {
     color: $text-primary;
-    font-size: 2rem;
-    font-weight: 700;
 
-    .logo-icon { font-size: 2.4rem; }
-
-    &:hover { color: $primary-light; }
+    .navbar-brand__tag {
+        color: $text-muted;
+    }
 }
 
 .navbar-actions {
     display: flex;
     align-items: center;
-    gap: 1.2rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
 }
 
-.nav-link {
-    display: flex;
+.navbar-icon-btn {
+    display: inline-flex;
     align-items: center;
-    gap: 0.8rem;
-    text-decoration: none;
-    color: $text-secondary;
-    font-size: 1.4rem;
-    transition: $transition;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba($nav-ink, 0.12);
+    background: transparent;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.45rem;
+    line-height: 1;
+    color: $nav-ink-muted;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 
-    &:hover { color: $text-primary; }
+    &:hover {
+        color: $nav-ink;
+        border-color: rgba($nav-ink, 0.22);
+        background: rgba($nav-ink, 0.04);
+    }
 }
 
-.nav-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, $primary, $accent);
+.navbar-theme-icon-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 1.4rem;
+    width: 100%;
+    height: 100%;
+    color: inherit;
+}
+
+.navbar-theme-svg {
+    display: block;
+    width: 2.15rem;
+    height: 2.15rem;
+    flex-shrink: 0;
+    color: inherit;
+}
+
+.navbar-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.5rem 0.35rem;
+    font-size: 1.3rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    color: $nav-ink-muted;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: "Raleway", system-ui, sans-serif;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: $nav-ink;
+    }
+}
+
+// «Войти»: как текстовая кнопка в капсуле, почти как «Регистрация», но без акцента.
+.navbar-link.navbar-link--guest {
+    padding: 0.55rem 1.2rem;
+    border-radius: 9999px;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    border: 1px solid transparent;
+    background: transparent;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.navbar:not(.navbar--hero) .navbar-link.navbar-link--guest {
+    color: rgba(65, 76, 65, 0.72);
+
+    &:hover {
+        color: $nav-ink;
+        background: rgba($nav-ink, 0.05);
+        border-color: rgba($nav-ink, 0.08);
+    }
+}
+
+.navbar-link--account {
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    max-width: min(42vw, 220px);
+}
+
+.navbar:not(.navbar--hero) .navbar-link--account {
+    color: rgba(65, 76, 65, 0.78);
+
+    &:hover {
+        color: $nav-ink;
+    }
+}
+
+.navbar-link__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.navbar-link--quiet {
+    font-weight: 400;
+    font-size: 1.25rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+}
+
+.navbar:not(.navbar--hero) .navbar-link--quiet {
+    color: rgba(65, 76, 65, 0.5);
+
+    &:hover {
+        color: $nav-ink;
+    }
+}
+
+[data-theme="dark"] .navbar:not(.navbar--hero) .navbar-link {
+    color: $text-secondary;
+
+    &:hover {
+        color: $text-primary;
+    }
+}
+
+[data-theme="dark"] .navbar:not(.navbar--hero) .navbar-link.navbar-link--guest {
+    color: $text-secondary;
+
+    &:hover {
+        color: $text-primary;
+        background: $hover-bg;
+        border-color: $glass-border;
+    }
+}
+
+[data-theme="dark"] .navbar:not(.navbar--hero) .navbar-link--account {
+    color: $text-secondary;
+}
+
+[data-theme="dark"] .navbar:not(.navbar--hero) .navbar-link--quiet {
+    color: $text-muted;
+}
+
+[data-theme="dark"] .navbar:not(.navbar--hero) .navbar-icon-btn {
+    color: $text-secondary;
+    border-color: $glass-border;
+
+    &:hover {
+        color: $text-primary;
+        background: $hover-bg;
+    }
+}
+
+// «Регистрация»: тот же размер и капсула, чуть сильнее (600 + лёгкая рамка/фон), без капса.
+.navbar-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 1.25rem;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    text-decoration: none;
+    border-radius: 9999px;
+    border: 1px solid rgba($nav-ink, 0.22);
+    background: rgba($nav-ink, 0.07);
+    color: $nav-ink;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        border-color: rgba($nav-ink, 0.35);
+        background: rgba($nav-ink, 0.11);
+        box-shadow: 0 6px 18px rgba(65, 76, 65, 0.1);
+    }
+}
+
+[data-theme="dark"] .navbar:not(.navbar--hero) .navbar-cta {
+    background: rgba(232, 229, 214, 0.08);
+    border-color: rgba(232, 229, 214, 0.22);
+    color: $text-primary;
+
+    &:hover {
+        border-color: rgba(232, 229, 214, 0.38);
+        background: rgba(232, 229, 214, 0.12);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+}
+
+.nav-avatar {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, $primary, $accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.3rem;
     color: white;
+}
+
+.nav-avatar--preset {
+    color: rgba(255, 255, 255, 0.96);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+}
+
+.nav-avatar--img {
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba($nav-ink, 0.14);
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+[data-theme="dark"] .navbar:not(.navbar--hero) .nav-avatar--img {
+    border-color: $glass-border;
+}
+
+.navbar--hero .nav-avatar--img {
+    border-color: rgba(255, 255, 255, 0.4);
 }

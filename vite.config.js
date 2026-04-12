@@ -11,6 +11,8 @@ export default defineConfig({
             '/logout': process.env.VITE_API_URL || 'http://localhost:8000',
             '/user': process.env.VITE_API_URL || 'http://localhost:8000',
             '/api': process.env.VITE_API_URL || 'http://localhost:8000',
+            '/images': process.env.VITE_API_URL || 'http://localhost:8000',
+            '/public/images': process.env.VITE_API_URL || 'http://localhost:8000',
         },
     },
     plugins: [

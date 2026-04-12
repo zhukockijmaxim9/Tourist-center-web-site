@@ -1,25 +1,18 @@
-// ═══════════════════════════════════════════════════
-// Tourist Center — Main Entry
-// ═══════════════════════════════════════════════════
-
-// Abstracts
 @use "abstracts/variables" as *;
 
-// Base
-@use "base/base";
 @use "base/typography";
+@use "base/motion";
+@use "base/base";
 
-// Layout
 @use "layout/content";
 
-// Components
 @use "components/navbar";
 @use "components/buttons";
 @use "components/forms";
 @use "components/tables";
 @use "components/ui";
 
-// Pages
 @use "pages/landing";
 @use "pages/auth";
 @use "pages/dashboard";
+@use "pages/account";

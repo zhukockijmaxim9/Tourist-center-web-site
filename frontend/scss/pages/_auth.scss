@@ -1,43 +1,220 @@
 @use "../abstracts/variables" as *;
 
+// Фон как на лендинге; карточка и поля — в духе модалки «Бронирование».
+$auth-canvas: #e8e5d6;
+
 .auth-page {
     min-height: calc(100vh - 70px);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4rem 2.4rem;
+    padding: clamp(2.4rem, 5vw, 4.5rem) 1.6rem;
+    background: $auth-canvas;
 }
 
 .auth-card {
-    background: $bg-card;
-    border: 1px solid $glass-border;
-    border-radius: $radius-xl;
-    padding: 4rem;
     width: 100%;
-    max-width: 440px;
+    max-width: min(480px, 100%);
+    border: none;
+    border-radius: 36px;
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.12);
+    background: #fff;
+    padding: clamp(2.2rem, 4vw, 2.85rem) clamp(1.75rem, 4vw, 2.25rem) clamp(2rem, 4vw, 2.5rem);
+    animation: motion-card-rise 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-form__head {
+    text-align: center;
+    margin-bottom: 1.75rem;
+}
+
+.auth-form__title {
+    font-family: "Literature Decor", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-size: clamp(2rem, 3.6vw, 2.75rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #0f172a;
+    margin: 0 0 1.1rem;
+    line-height: 1.15;
+}
+
+.auth-form__subtitle {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-weight: 300;
+    font-size: 1.4rem;
+    line-height: 1.55;
+    color: #64748b;
+    margin: 0 auto;
+    max-width: 34em;
+}
+
+.auth-form__alert {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    padding: 1rem 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 1.6rem;
+    text-align: center;
+}
+
+.auth-form__alert--error {
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    color: #475569;
+}
+
+.auth-form {
+    font-family: "Raleway", system-ui, sans-serif;
+}
+
+.auth-form__field {
+    margin-bottom: 1.5rem;
+}
+
+.auth-form__label {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+}
+
+.auth-form__control {
+    display: block;
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #cbd5e1;
+    background: transparent;
+    padding: 0.6rem 0;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.55rem;
+    font-weight: 400;
+    color: #0f172a;
+    border-radius: 0;
+    transition: border-color 0.2s ease;
+
+    &::placeholder {
+        color: #cbd5e1;
+    }
+
+    &:focus {
+        outline: none;
+        border-bottom-color: #0f172a;
+    }
+}
+
+.auth-form__submit {
+    display: block;
+    margin: 2rem auto 0;
+    padding: 0.8rem 2.6rem;
+    border: 1px solid #94a3b8;
+    background: transparent;
+    border-radius: 9999px;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-weight: 300;
+    font-size: 1.45rem;
+    color: #64748b;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+
+    &:hover:not(:disabled) {
+        color: #0f172a;
+        border-color: #0f172a;
+        background: rgba(15, 23, 42, 0.02);
+    }
+
+    &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: #64748b;
+
+    a {
+        color: $primary;
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px solid transparent;
+        transition: color 0.2s ease, border-color 0.2s ease;
+
+        &:hover {
+            color: $primary-dark;
+            border-bottom-color: rgba($primary-dark, 0.35);
+        }
+    }
+}
+
+[data-theme="dark"] .auth-page {
+    background: $bg-dark;
+}
+
+[data-theme="dark"] .auth-card {
+    background: $bg-card;
     box-shadow: $shadow-lg;
+}
 
-    h1 {
-        font-size: 2.8rem;
-        margin-bottom: 0.6rem;
+[data-theme="dark"] .auth-form__title {
+    color: $text-primary;
+}
+
+[data-theme="dark"] .auth-form__subtitle {
+    color: $text-muted;
+}
+
+[data-theme="dark"] .auth-form__label {
+    color: $text-muted;
+}
+
+[data-theme="dark"] .auth-form__control {
+    color: $text-primary;
+    border-bottom-color: rgba(184, 180, 168, 0.28);
+
+    &::placeholder {
+        color: $text-muted;
     }
 
-    .auth-subtitle {
-        color: $text-secondary;
-        margin-bottom: 2.4rem;
+    &:focus {
+        border-bottom-color: rgba(218, 212, 192, 0.75);
     }
+}
 
-    .auth-footer {
-        text-align: center;
-        margin-top: 2rem;
-        color: $text-secondary;
-        font-size: 1.4rem;
+[data-theme="dark"] .auth-form__alert--error {
+    background: rgba(120, 56, 56, 0.18);
+    border-color: rgba(168, 96, 96, 0.35);
+    color: #e8cfcf;
+}
 
-        a {
-            color: $primary-light;
-            text-decoration: none;
+[data-theme="dark"] .auth-form__submit {
+    border-color: rgba(184, 180, 168, 0.35);
+    color: $text-secondary;
 
-            &:hover { text-decoration: underline; }
+    &:hover:not(:disabled) {
+        color: $text-primary;
+        border-color: rgba(218, 212, 192, 0.5);
+        background: $hover-bg;
+    }
+}
+
+[data-theme="dark"] .auth-footer {
+    color: $text-muted;
+
+    a {
+        color: rgba(180, 198, 186, 0.92);
+
+        &:hover {
+            color: $text-primary;
+            border-bottom-color: rgba(232, 229, 214, 0.35);
         }
     }
 }

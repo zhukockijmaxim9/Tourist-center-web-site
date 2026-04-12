@@ -1,10 +1,10 @@
 @use "../abstracts/variables" as *;
 
-// ─── Badges ─────────────────────────────────────────
 .badge {
     display: inline-block;
     padding: 0.3rem 1rem;
     border-radius: $radius-sm;
+    font-family: $font-sans;
     font-size: 1.2rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -17,10 +17,10 @@
 .badge-danger { background: rgba($danger, 0.15); color: $danger; }
 .badge-muted { background: rgba($muted, 0.15); color: $muted; }
 
-// ─── Alerts ─────────────────────────────────────────
 .alert {
     padding: 1.2rem 1.6rem;
     border-radius: $radius;
+    font-family: $font-sans;
     font-size: 1.4rem;
     margin-bottom: 1.6rem;
 }
@@ -37,18 +37,26 @@
     color: $primary-dark;
 }
 
-// ─── Modal ──────────────────────────────────────────
 .modal-overlay {
     position: fixed;
     inset: 0;
     z-index: 200;
-    background: $bg-overlay;
-    backdrop-filter: blur(8px);
+    background: rgba(24, 28, 26, 0.38);
+    backdrop-filter: blur(16px) saturate(1.12);
+    -webkit-backdrop-filter: blur(16px) saturate(1.12);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    animation: fadeIn 0.2s ease-out;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: modalOverlayIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+[data-theme="dark"] .modal-overlay {
+    background: rgba(6, 8, 6, 0.52);
+    backdrop-filter: blur(20px) saturate(1.06);
+    -webkit-backdrop-filter: blur(20px) saturate(1.06);
 }
 
 .modal-content {
@@ -57,10 +65,13 @@
     border-radius: $radius-xl;
     width: 100%;
     max-width: 520px;
-    max-height: 90vh;
+    max-height: min(90vh, calc(100dvh - 4rem));
+    margin: auto;
     overflow-y: auto;
     box-shadow: $shadow-lg;
-    animation: slideUp 0.25s ease-out;
+    font-family: $font-sans;
+    flex-shrink: 0;
+    animation: modalContentIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .modal-header {
@@ -69,12 +80,16 @@
     justify-content: space-between;
     padding: 2.4rem 2.4rem 0;
 
-    h2 { font-size: 2rem; }
+    h2 {
+        font-family: $font-sans;
+        font-size: 2rem;
+    }
 }
 
 .modal-close {
     background: none;
     border: none;
+    font-family: $font-sans;
     color: $text-muted;
     font-size: 2.8rem;
     cursor: pointer;
@@ -89,17 +104,443 @@
     padding: 2rem 2.4rem 2.4rem;
 }
 
+.modal-content--elva {
+    background: linear-gradient(165deg, rgba($landing-moss, 0.1) 0%, #f0eee6 42%, #ebe8df 100%);
+    border: 1px solid rgba($landing-moss, 0.28);
+    box-shadow: 0 22px 56px rgba(42, 52, 40, 0.14);
+
+    .modal-header {
+        padding: 2.2rem 2.4rem 1.2rem;
+        margin: 0 0 0.25rem;
+        border-bottom: 1px solid rgba($services-ink, 0.1);
+
+        h2 {
+            font-family: $font-literature;
+            font-weight: 400;
+            font-size: clamp(1.75rem, 3vw, 2.15rem);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: $services-ink;
+            line-height: 1.15;
+        }
+    }
+
+    .modal-close {
+        color: rgba($services-ink, 0.45);
+
+        &:hover {
+            color: $landing-moss;
+        }
+    }
+
+    .modal-body {
+        padding-top: 1.6rem;
+
+        .form-group {
+            label {
+                color: rgba($services-ink, 0.88);
+                font-weight: 600;
+            }
+
+            input,
+            select,
+            textarea {
+                background: rgba(255, 255, 255, 0.55);
+                border-color: rgba($landing-moss, 0.3);
+                color: $text-primary;
+
+                &:focus {
+                    border-color: rgba($landing-moss, 0.55);
+                    box-shadow: 0 0 0 3px rgba($landing-moss, 0.12);
+                }
+            }
+        }
+    }
+
+    .user-dashboard-confirm-text {
+        color: rgba($services-ink, 0.82);
+    }
+}
+
+[data-theme="dark"] .modal-content--elva {
+    background: linear-gradient(165deg, rgba(36, 42, 34, 0.98) 0%, rgba(24, 26, 23, 0.99) 100%);
+    border-color: rgba($landing-moss, 0.35);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+
+    .modal-header {
+        border-bottom-color: rgba(232, 229, 214, 0.12);
+
+        h2 {
+            color: rgba(232, 244, 224, 0.95);
+        }
+    }
+
+    .modal-close {
+        color: $text-muted;
+
+        &:hover {
+            color: rgba(210, 228, 200, 0.95);
+        }
+    }
+
+    .modal-body {
+        .form-group {
+            label {
+                color: rgba(200, 214, 192, 0.9);
+            }
+
+            input,
+            select,
+            textarea {
+                background: rgba(12, 14, 12, 0.55);
+                border-color: rgba($landing-moss, 0.35);
+                color: $text-primary;
+
+                &:focus {
+                    border-color: rgba(186, 210, 176, 0.45);
+                    box-shadow: 0 0 0 3px rgba($landing-moss, 0.15);
+                }
+            }
+        }
+    }
+
+    .user-dashboard-confirm-text {
+        color: $text-secondary;
+    }
+}
+
+.modal-overlay--booking {
+    background: rgba(10, 10, 10, 0.88);
+    backdrop-filter: blur(14px);
+    padding: 1.25rem min(2rem, 5vw);
+}
+
+.modal-content--booking {
+    position: relative;
+    max-width: min(520px, 93vw);
+    border: none;
+    border-radius: 36px;
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.33);
+    background: #f2f0e8;
+    animation: motion-card-rise 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.modal-close--booking {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.4rem;
+    z-index: 3;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 2.6rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.4rem;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: #0f172a;
+    }
+}
+
+.modal-body--booking {
+    padding: 2.8rem 2rem 2.4rem;
+    padding-top: 3rem;
+}
+
+.booking-form__head {
+    text-align: center;
+    margin-bottom: 1.75rem;
+}
+
+.booking-form__title {
+    font-family: "Literature Decor", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-size: clamp(2.15rem, 3.8vw, 2.85rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #0f172a;
+    margin: 0 0 1.35rem;
+    line-height: 1.15;
+}
+
+.booking-form__subtitle {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-weight: 300;
+    font-size: 1.4rem;
+    line-height: 1.55;
+    color: #64748b;
+    margin: 0 auto;
+    max-width: 34em;
+}
+
+.booking-form__alert {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    padding: 1rem 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 1.6rem;
+    text-align: center;
+}
+
+.booking-form__alert--error {
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    color: #475569;
+}
+
+.booking-form {
+    font-family: "Raleway", system-ui, sans-serif;
+}
+
+.booking-form__field {
+    margin-bottom: 1.5rem;
+}
+
+.booking-form__label {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+}
+
+.booking-form__control {
+    display: block;
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #cbd5e1;
+    background: transparent;
+    padding: 0.6rem 0;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.55rem;
+    font-weight: 400;
+    color: #0f172a;
+    border-radius: 0;
+    transition: border-color 0.2s ease;
+
+    &::placeholder {
+        color: #cbd5e1;
+    }
+
+    &:focus {
+        outline: none;
+        border-bottom-color: #0f172a;
+    }
+}
+
+.booking-form__control--textarea {
+    resize: vertical;
+    min-height: 4.5rem;
+    line-height: 1.5;
+}
+
+.booking-form__phone-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 0.55rem;
+    transition: border-color 0.2s ease;
+
+    &:focus-within {
+        border-bottom-color: #0f172a;
+    }
+}
+
+.booking-form__phone-prefix {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.55rem;
+    font-weight: 400;
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.booking-form__control--phone {
+    flex: 1;
+    border-bottom: none;
+    padding: 0;
+
+    &:focus {
+        border-bottom: none;
+    }
+}
+
+.booking-form__submit {
+    display: block;
+    margin: 2rem auto 0;
+    padding: 0.8rem 2.6rem;
+    border: 1px solid #94a3b8;
+    background: transparent;
+    border-radius: 9999px;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-weight: 300;
+    font-size: 1.45rem;
+    color: #64748b;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+
+    &:hover {
+        color: #0f172a;
+        border-color: #0f172a;
+        background: rgba(15, 23, 42, 0.02);
+    }
+}
+
+// Экран после отправки заявки (как в макете)
+.booking-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.75rem 1rem 1.25rem;
+    min-height: 0;
+}
+
+.booking-success__title {
+    font-family: "Literature Decor", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-size: clamp(1.35rem, 3.4vw, 2.05rem);
+    letter-spacing: 0.065em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: #0f172a;
+    margin: 0 0 1.2rem;
+    max-width: none;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.booking-success__text {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 1.4rem;
+    line-height: 1.55;
+    color: #0f172a;
+    margin: 0;
+    max-width: 32em;
+}
+
+[data-theme="dark"] .modal-overlay--booking {
+    background: rgba(10, 11, 10, 0.86);
+}
+
+[data-theme="dark"] .modal-content--booking {
+    background: $bg-card;
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="dark"] .modal-close--booking {
+    color: $text-muted;
+
+    &:hover {
+        color: $text-primary;
+    }
+}
+
+[data-theme="dark"] .booking-form__title,
+[data-theme="dark"] .booking-success__title {
+    color: $text-primary;
+}
+
+[data-theme="dark"] .booking-form__subtitle {
+    color: $text-secondary;
+}
+
+[data-theme="dark"] .booking-form__alert--error {
+    background: rgba(120, 56, 56, 0.15);
+    border-color: rgba(168, 96, 96, 0.32);
+    color: #e8cfcf;
+}
+
+[data-theme="dark"] .booking-form__label {
+    color: $text-muted;
+}
+
+[data-theme="dark"] .booking-form__control {
+    color: $text-primary;
+    border-bottom-color: rgba(184, 180, 168, 0.28);
+
+    &::placeholder {
+        color: $text-muted;
+    }
+
+    &:focus {
+        border-bottom-color: rgba(218, 212, 192, 0.72);
+    }
+}
+
+[data-theme="dark"] .booking-form__phone-row {
+    border-bottom-color: rgba(184, 180, 168, 0.28);
+
+    &:focus-within {
+        border-bottom-color: rgba(218, 212, 192, 0.72);
+    }
+}
+
+[data-theme="dark"] .booking-form__phone-prefix {
+    color: $text-muted;
+}
+
+[data-theme="dark"] .booking-form__submit {
+    border-color: rgba(184, 180, 168, 0.35);
+    color: $text-secondary;
+
+    &:hover {
+        color: $text-primary;
+        border-color: rgba(218, 212, 192, 0.52);
+        background: $hover-bg;
+    }
+}
+
+[data-theme="dark"] .booking-success__text {
+    color: $text-secondary;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
-@keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+@keyframes modalOverlayIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
-// ─── Loading ────────────────────────────────────────
+@keyframes modalContentIn {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translate3d(0, 24px, 0);
+        opacity: 0;
+    }
+
+    to {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+
 .loading-screen {
     min-height: calc(100vh - 70px);
     display: flex;
@@ -119,7 +560,6 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
-// ─── Stats Cards ────────────────────────────────────
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -185,7 +625,6 @@
     }
 }
 
-// ─── Welcome Banner ─────────────────────────────────
 .welcome-banner {
     background: linear-gradient(135deg, $primary, $primary-dark);
     border-radius: $radius-xl;

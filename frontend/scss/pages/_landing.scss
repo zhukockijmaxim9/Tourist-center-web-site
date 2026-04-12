@@ -1,36 +1,185 @@
+@use "sass:color";
 @use "../abstracts/variables" as *;
+
+$navbar-h: 70px;
 
 .hero {
     position: relative;
-    min-height: calc(100vh - 70px);
+    min-height: calc(100vh - #{$navbar-h});
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: 4rem 2.4rem;
     overflow: hidden;
+    color: rgba(255, 255, 255, 0.92);
+    background: #0b0a09;
+}
+
+.landing {
+    background: $landing-bg;
+}
+
+.main-content:has(> .landing) {
+    background: $landing-bg;
+}
+
+.landing .hero {
+    margin-top: -#{$navbar-h};
+    padding-top: calc(#{$navbar-h} + 4rem);
+    min-height: 100vh;
+}
+
+.hero__photo-stack {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.hero__photo {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-repeat: no-repeat;
+    transform: scale(1.02);
+    opacity: 0;
+    transition: opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero__photo--light {
+    background-image: url("/public/images/hero.png"), url("/images/hero.png");
+    background-position: center 35%;
+    filter: saturate(1.05) contrast(1.05);
+    opacity: 1;
+}
+
+.hero__photo--dark {
+    background-image: url("/public/images/hero-dark.png"), url("/images/hero-dark.png");
+    background-position: center 32%;
+    filter: saturate(1.06) contrast(1.06) brightness(0.97);
+}
+
+[data-theme="dark"] .landing .hero .hero__photo--light {
+    opacity: 0;
+}
+
+[data-theme="dark"] .landing .hero .hero__photo--dark {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero__photo {
+        transition-duration: 0.01ms;
+    }
+}
+
+$hero-fade-top: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.38) 0%,
+    rgba(0, 0, 0, 0.12) 22%,
+    rgba(0, 0, 0, 0) 46%
+);
+
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.hero--fade-white::after {
+    background:
+        $hero-fade-top,
+        linear-gradient(
+            180deg,
+            rgba($landing-bg, 0) 0%,
+            rgba($landing-bg, 0) 42%,
+            rgba($landing-bg, 0.02) 52%,
+            rgba($landing-bg, 0.08) 62%,
+            rgba($landing-bg, 0.22) 72%,
+            rgba($landing-bg, 0.48) 81%,
+            rgba($landing-bg, 0.76) 88%,
+            rgba($landing-bg, 0.94) 94%,
+            $landing-bg 100%
+        );
+}
+
+.hero--fade-dark::after {
+    background:
+        $hero-fade-top,
+        linear-gradient(
+            180deg,
+            rgba(8, 8, 8, 0) 0%,
+            rgba(8, 8, 8, 0) 42%,
+            rgba(8, 8, 8, 0.12) 58%,
+            rgba(8, 8, 8, 0.35) 72%,
+            rgba(8, 8, 8, 0.62) 84%,
+            rgba(8, 8, 8, 0.88) 92%,
+            #080808 100%
+        );
 }
 
 .hero-content {
     position: relative;
-    z-index: 2;
+    z-index: 3;
     max-width: 700px;
 }
 
+.hero-brand {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2.8rem;
+    min-height: clamp(160px, 28vw, 220px);
+}
+
+.hero-brand::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: clamp(110px, 32vw, 190px);
+    height: clamp(110px, 32vw, 190px);
+    border-radius: 50%;
+    border: 2px solid rgb(255, 255, 255);
+
+}
+
+.hero-brand__text {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    font-family: "Athena", "Raleway", system-ui, sans-serif;
+    font-size: 6rem; // 60px
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    line-height: 1.05;
+    color: rgba(255, 255, 255, 0.96);
+    text-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    text-align: center;
+    padding: 0 1.6rem;
+}
+
 .hero-title {
-    font-size: 5.6rem;
-    font-weight: 800;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 400;
     letter-spacing: -0.02em;
-    margin-bottom: 2rem;
-    background: linear-gradient(135deg, $text-primary, $primary-dark);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    margin-bottom: 1.25rem;
+    color: rgba(255, 255, 255, 0.96);
+    text-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
 }
 
 .hero-subtitle {
-    font-size: 2rem;
-    color: $text-secondary;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.78);
     margin-bottom: 3.2rem;
     line-height: 1.6;
 }
@@ -40,12 +189,33 @@
     gap: 1.6rem;
     justify-content: center;
     flex-wrap: wrap;
+    isolation: isolate;
+
+    // Прозрачные «стеклянные» кнопки: тонкая белая обводка, Raleway, размытие фона hero.
+    .btn--hero-wire {
+        font-family: "Raleway", system-ui, sans-serif;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.96);
+        // Почти без заливки: Safari часто требует ненулевой alpha, чтобы сработал backdrop-filter.
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        border-radius: 9999px;
+        box-shadow: none;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+
+        &:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.88);
+        }
+    }
 }
 
 .hero-decoration {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 2;
     pointer-events: none;
 }
 
@@ -59,7 +229,7 @@
 .hero-orb-1 {
     width: 400px;
     height: 400px;
-    background: $primary;
+    background: rgba(236, 163, 76, 0.45);
     top: 10%;
     left: 10%;
 }
@@ -67,7 +237,7 @@
 .hero-orb-2 {
     width: 300px;
     height: 300px;
-    background: $accent;
+    background: rgba(255, 255, 255, 0.22);
     bottom: 20%;
     right: 10%;
 }
@@ -75,12 +245,11 @@
 .hero-orb-3 {
     width: 250px;
     height: 250px;
-    background: $success;
+    background: rgba($primary, 0.18);
     bottom: 10%;
     left: 30%;
 }
 
-// ─── Category Filter ─────────────────────────────────
 .category-filter {
     max-width: 1200px;
     margin: 0 auto 2rem;
@@ -109,7 +278,7 @@
     &:hover {
         color: $primary;
         border-color: $primary;
-        background: rgba(16, 185, 129, 0.06);
+        background: rgba($primary, 0.06);
     }
 
     &.active {
@@ -120,10 +289,407 @@
     }
 }
 
+.services-section {
+    width: 100%;
+    background: $landing-bg;
+    color: $text-primary;
+    margin-top: -1px;
+    padding: clamp(3.5rem, 6vw, 5.5rem) 0 clamp(4.5rem, 7vw, 6.5rem);
+    position: relative;
+    z-index: 1;
+}
+
+.services-section__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2.4rem;
+}
+
+.services-section__head {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: clamp(2rem, 4vw, 3.2rem);
+}
+
+.services-section__title {
+    font-family: "Literature Decor", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-size: clamp(1.9rem, 3.2vw, 2.75rem);
+    color: $services-ink;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.services-section__rule {
+    flex: 1;
+    height: 1px;
+    min-height: 1px;
+    background: linear-gradient(
+        90deg,
+        rgba($services-ink, 0.55) 0%,
+        rgba($services-ink, 0.12) 72%,
+        rgba($services-ink, 0) 100%
+    );
+    min-width: 2rem;
+}
+
+.services-filter {
+    margin: 0 0 clamp(2rem, 4vw, 3rem);
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.services-filter__track {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1.25rem;
+    padding: 0.35rem 0 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba($services-ink, 0.25) transparent;
+
+    &::-webkit-scrollbar {
+        height: 5px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba($services-ink, 0.22);
+        border-radius: 99px;
+    }
+}
+
+.services-filter__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem 0.65rem;
+    padding: 0.25rem 0;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.services-filter__chip {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: rgba($services-ink, 0.72);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba($services-ink, 0.12);
+    border-radius: 9999px;
+    padding: 0.6rem 1.35rem;
+    margin: 0;
+    cursor: pointer;
+    transition:
+        background 0.22s ease,
+        color 0.22s ease,
+        border-color 0.22s ease,
+        box-shadow 0.22s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.92);
+        border-color: rgba($services-ink, 0.2);
+        color: $services-ink;
+    }
+
+    &:focus-visible {
+        outline: 2px solid rgba($services-ink, 0.35);
+        outline-offset: 2px;
+        z-index: 1;
+    }
+
+    &.is-active {
+        background: $services-ink;
+        color: rgba(228, 238, 222, 0.98);
+        border-color: rgba($services-ink, 0.95);
+        font-weight: 600;
+        box-shadow: 0 4px 16px rgba($services-ink, 0.18);
+    }
+}
+
+.services-filter__heading {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: clamp(1.55rem, 2.8vw, 2.05rem);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: $services-ink;
+    margin: 0 0 2rem;
+    line-height: 1.25;
+    padding: 0;
+    border: none;
+    text-align: center;
+    width: 100%;
+    max-width: 52rem;
+    animation: motion-fade-up 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (max-width: 640px) {
+    // Горизонтальный скролл: выравнивание слева, чтобы не «прыгал» overflow.
+    .services-filter__track {
+        justify-content: flex-start;
+    }
+
+    .services-filter__chips {
+        flex-wrap: nowrap;
+        width: max-content;
+        max-width: none;
+        justify-content: flex-start;
+    }
+
+    .services-filter__chip {
+        flex-shrink: 0;
+        font-size: 1.2rem;
+        padding: 0.55rem 1.15rem;
+    }
+}
+
+.services-section__empty {
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.35rem;
+    color: $text-muted;
+    text-align: center;
+    margin: 2rem 0 0;
+}
+
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
+}
+
+.services-grid.services-grid--showcase {
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.5rem, 3vw, 2.4rem);
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 901px) and (max-width: 1100px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.service-showcase {
+    // Литерал «Raleway» + полный стек: так надёжнее, чем только $font-sans (совпадает с @font-face).
+    font-family: "Raleway", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    text-align: left;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba($services-ink, 0.1);
+    border-radius: 22px;
+    padding: 1.1rem 1.15rem 1.35rem;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.85) inset,
+        0 14px 40px rgba(65, 76, 65, 0.08);
+    transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.35s ease,
+        border-color 0.25s ease,
+        background 0.25s ease;
+
+    // Весь текст карточки — тот же Raleway, что в @font-face (заголовок без «чужого» начертания h3).
+    h3,
+    p,
+    span,
+    .service-showcase__title,
+    .service-showcase__desc,
+    .service-showcase__price,
+    .service-showcase__price--muted,
+    .service-showcase__category,
+    .service-showcase__badge {
+        font-family: "Raleway", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    &:hover {
+        transform: translateY(-4px);
+        border-color: rgba($landing-moss, 0.38);
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.9) inset,
+            0 22px 50px rgba($landing-moss, 0.14),
+            0 18px 40px rgba(61, 81, 99, 0.08);
+        background: rgba(255, 255, 255, 0.92);
+    }
+
+    &:focus-visible {
+        outline: 2px solid rgba($primary, 0.45);
+        outline-offset: 4px;
+        border-radius: 22px;
+    }
+}
+
+.service-showcase__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 16px;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.35) 0%, transparent 42%),
+        linear-gradient(120deg, rgba($landing-moss, 0.22) 0%, transparent 38%),
+        linear-gradient(155deg, rgba($primary, 0.12) 0%, rgba($services-ink, 0.16) 48%, rgba($landing-moss, 0.2) 100%);
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        inset 0 0 0 1px rgba($landing-moss, 0.12);
+}
+
+.service-showcase__photo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.service-showcase__media--photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.12) 0%,
+        transparent 38%,
+        transparent 52%,
+        rgba(20, 22, 20, 0.38) 100%
+    );
+    border-radius: inherit;
+}
+
+.service-showcase__media--photo .service-showcase__category {
+    z-index: 2;
+}
+
+.service-showcase__icon {
+    position: absolute;
+    left: 1.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.4rem;
+    line-height: 1;
+}
+
+.service-showcase__badge--overlay {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 2;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.service-showcase__category {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: color.adjust($landing-moss, $lightness: -12%);
+    background: rgba($landing-moss, 0.14);
+    border: 1px solid rgba($landing-moss, 0.28);
+    padding: 0.35rem 0.85rem;
+    border-radius: 100px;
+    max-width: min(55%, calc(100% - 9.5rem));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.service-showcase__title {
+    font-family: "Raleway", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: $services-ink;
+    margin: 0 0 0.6rem;
+    line-height: 1.3;
+}
+
+.service-showcase__desc {
+    font-family: "Raleway", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: $text-secondary;
+    line-height: 1.55;
+    margin: 0 0 1.15rem;
+}
+
+.service-showcase__bottom {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.service-showcase__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.service-showcase__price {
+    font-family: "Raleway", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: color.adjust($landing-moss, $lightness: -6%);
+    margin: 0;
+}
+
+.service-showcase__price--muted {
+    font-weight: 500;
+    color: $text-muted;
+}
+
+.service-showcase__badge {
+    font-size: 1.15rem;
+    font-weight: 600;
+    padding: 0.3rem 0.85rem;
+    border-radius: 100px;
+}
+
+.service-showcase__badge--on {
+    color: $primary-dark;
+    background: rgba($primary, 0.1);
+    border: 1px solid rgba($primary, 0.22);
+}
+
+.service-showcase__badge--off {
+    color: $text-muted;
+    background: rgba(100, 116, 139, 0.08);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.services-section .btn--service-showcase,
+.dashboard--user .btn--service-showcase {
+    font-family: "Raleway", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    font-size: 1.3rem;
+    border-radius: 9999px;
+    padding: 0.55rem 1.35rem;
 }
 
 .service-card {
@@ -153,7 +719,7 @@
         font-size: 2.2rem;
         width: 4.4rem;
         height: 4.4rem;
-        background: rgba(16, 185, 129, 0.1);
+        background: rgba($primary, 0.1);
         border-radius: $radius;
         display: flex;
         align-items: center;
@@ -164,7 +730,7 @@
         font-size: 1.2rem;
         font-weight: 600;
         color: $primary;
-        background: rgba(16, 185, 129, 0.08);
+        background: rgba($primary, 0.08);
         padding: 0.3rem 1rem;
         border-radius: 100px;
         max-width: 50%;
@@ -248,7 +814,22 @@
     }
 }
 
-// ─── Service Details Modal ──────────────────────────
+.service-details__media {
+    margin: 0 0 1.25rem;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    max-height: 220px;
+    background: rgba($services-ink, 0.08);
+
+    img {
+        display: block;
+        width: 100%;
+        height: clamp(140px, 28vw, 200px);
+        object-fit: cover;
+        object-position: center;
+    }
+}
+
 .service-details {
     .service-details-desc {
         color: $text-secondary;
@@ -265,7 +846,6 @@
     }
 }
 
-// ─── Reviews Section ────────────────────────────────
 .reviews-section {
     border-top: 1px solid $glass-border;
     padding-top: 1.6rem;
@@ -422,7 +1002,6 @@
     margin: 0;
 }
 
-// ─── Review Form ────────────────────────────────────
 .review-form {
     border-top: 1px solid $glass-border;
     padding-top: 1.6rem;
@@ -480,5 +1059,216 @@
         &:hover {
             text-decoration: underline;
         }
+    }
+}
+
+$motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+.landing .hero-content {
+    > .hero-brand {
+        animation: motion-fade-up 0.95s $motion-ease both;
+        animation-delay: 0.06s;
+    }
+
+    > .hero-title {
+        animation: motion-fade-up 0.88s $motion-ease both;
+        animation-delay: 0.2s;
+    }
+
+    > .hero-subtitle {
+        animation: motion-fade-up 0.82s $motion-ease both;
+        animation-delay: 0.34s;
+    }
+
+    > .hero-actions {
+        animation: motion-fade-up 0.78s $motion-ease both;
+        animation-delay: 0.48s;
+    }
+}
+
+.landing .hero-orb-1 {
+    animation: motion-hero-orbit 17s ease-in-out infinite;
+}
+
+.landing .hero-orb-2 {
+    animation: motion-hero-orbit 21s ease-in-out infinite;
+    animation-delay: -5s;
+}
+
+.landing .hero-orb-3 {
+    animation: motion-hero-orbit 19s ease-in-out infinite;
+    animation-delay: -9s;
+}
+
+.landing .services-section__head {
+    animation: motion-fade-up 0.72s $motion-ease both;
+}
+
+.landing .services-filter {
+    animation: motion-fade-up 0.68s $motion-ease both;
+    animation-delay: 0.06s;
+}
+
+.landing .services-grid--showcase .service-showcase {
+    animation: motion-card-rise 0.58s $motion-ease both;
+}
+
+@for $i from 1 through 12 {
+    .landing .services-grid--showcase .service-showcase:nth-child(#{$i}) {
+        animation-delay: #{0.04 + ($i - 1) * 0.055}s;
+    }
+}
+
+.landing .section-cta {
+    animation: motion-fade-up 0.75s $motion-ease both;
+}
+
+[data-theme="dark"] .main-content:has(> .landing) {
+    background: $bg-dark;
+}
+
+[data-theme="dark"] .landing {
+    background: $bg-dark;
+}
+
+[data-theme="dark"] .landing .hero.hero--fade-white::after {
+    background:
+        $hero-fade-top,
+        linear-gradient(
+            180deg,
+            rgba(8, 8, 8, 0) 0%,
+            rgba(8, 8, 8, 0) 38%,
+            rgba(19, 20, 18, 0.35) 55%,
+            rgba(19, 20, 18, 0.78) 78%,
+            $bg-dark 100%
+        );
+}
+
+[data-theme="dark"] .services-section {
+    background: linear-gradient(180deg, #10110f 0%, $bg-dark 22%, $bg-dark 100%);
+    color: $text-primary;
+}
+
+[data-theme="dark"] .services-section__title {
+    color: rgba(232, 229, 214, 0.94);
+}
+
+[data-theme="dark"] .services-section__rule {
+    background: linear-gradient(
+        90deg,
+        rgba(232, 229, 214, 0.32) 0%,
+        rgba(232, 229, 214, 0.08) 72%,
+        rgba(232, 229, 214, 0) 100%
+    );
+}
+
+[data-theme="dark"] .services-filter__heading {
+    color: rgba(232, 229, 214, 0.88);
+}
+
+[data-theme="dark"] .services-filter__chips {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+[data-theme="dark"] .services-filter__chip {
+    color: rgba(232, 229, 214, 0.78);
+    background: rgba(30, 33, 30, 0.85);
+    border-color: rgba(232, 229, 214, 0.12);
+
+    &:hover {
+        color: rgba(252, 250, 242, 0.96);
+        background: rgba(40, 43, 39, 0.95);
+        border-color: rgba(232, 229, 214, 0.22);
+    }
+
+    &.is-active {
+        background: rgba($landing-moss, 0.35);
+        color: rgba(232, 244, 224, 0.98);
+        border-color: rgba(186, 210, 176, 0.45);
+        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.4);
+    }
+}
+
+[data-theme="dark"] .services-section__empty {
+    color: $text-muted;
+}
+
+[data-theme="dark"] .service-showcase {
+    background: rgba(30, 33, 30, 0.94);
+    border-color: rgba(232, 229, 214, 0.11);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.05) inset,
+        0 18px 48px rgba(0, 0, 0, 0.48);
+
+    &:hover {
+        background: rgba(36, 39, 35, 0.98);
+        border-color: rgba($landing-moss, 0.42);
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.07) inset,
+            0 24px 56px rgba(0, 0, 0, 0.55),
+            0 12px 36px rgba($landing-moss, 0.12);
+    }
+}
+
+[data-theme="dark"] .service-showcase__media {
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.07) 0%, transparent 45%),
+        linear-gradient(118deg, rgba($landing-moss, 0.28) 0%, transparent 40%),
+        linear-gradient(155deg, rgba(61, 81, 99, 0.38) 0%, rgba(14, 15, 13, 0.96) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 0 0 1px rgba($landing-moss, 0.15);
+}
+
+[data-theme="dark"] .service-showcase__media--photo::after {
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.22) 0%,
+        transparent 40%,
+        transparent 48%,
+        rgba(4, 6, 4, 0.55) 100%
+    );
+}
+
+[data-theme="dark"] .service-showcase__title {
+    color: $text-primary;
+}
+
+[data-theme="dark"] .service-showcase__price {
+    color: rgba(198, 214, 192, 0.96);
+}
+
+[data-theme="dark"] .service-showcase__category {
+    color: rgba(210, 222, 206, 0.95);
+    background: rgba($landing-moss, 0.18);
+    border-color: rgba($landing-moss, 0.35);
+}
+
+[data-theme="dark"] .service-showcase__badge--on {
+    color: rgba(248, 252, 244, 0.98);
+    background: rgba(58, 72, 54, 0.92);
+    border-color: rgba(186, 208, 176, 0.55);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .service-showcase__badge--off {
+    color: rgba(220, 218, 210, 0.95);
+    background: rgba(12, 14, 12, 0.72);
+    border-color: rgba(232, 229, 214, 0.22);
+}
+
+[data-theme="dark"] .service-showcase__badge--overlay {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="dark"] .section-cta {
+    h2 {
+        color: $text-primary;
+    }
+
+    p {
+        color: $text-secondary;
     }
 }

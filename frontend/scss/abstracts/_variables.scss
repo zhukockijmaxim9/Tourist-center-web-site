@@ -1,12 +1,15 @@
-// ─── SCSS Variables ──────────────────────────────────
-$primary: #10b981;
-$primary-dark: #059669;
-$primary-light: #34d399;
-$accent: #06b6d4;
-$success: #10b981;
+$primary: #3d5163;
+$primary-dark: #2c3a49;
+$primary-light: #5f7388;
+$accent: #5a6f82;
+$success: #3d5163;
 $warning: #f59e0b;
 $danger: #ef4444;
 $muted: #6b7280;
+
+$services-ink: #414c41;
+$landing-moss: #5a6b58;
+$landing-bg: #e8e5d6;
 
 $radius-sm: 6px;
 $radius: 10px;
@@ -15,8 +18,12 @@ $radius-xl: 24px;
 
 $transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
-// ─── Theme Variables (CSS Custom Properties) ─────────
+$font-sans: "Raleway", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$font-literature: "Literature Decor", Georgia, "Times New Roman", serif;
+$font-athena: "Athena", "Raleway", system-ui, sans-serif;
+
 :root {
+    --font-sans: #{$font-sans};
     --bg-dark: #fdfbf7;
     --bg-card: #ffffff;
     --bg-card-hover: #f1f5f9;
@@ -38,27 +45,26 @@ $transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-theme="dark"] {
-    --bg-dark: #0f172a;
-    --bg-card: #1e293b;
-    --bg-card-hover: #273548;
-    --bg-surface: #334155;
-    --bg-overlay: rgba(0, 0, 0, 0.6);
+    --bg-dark: #131412;
+    --bg-card: #1e211e;
+    --bg-card-hover: #282b27;
+    --bg-surface: #232622;
+    --bg-overlay: rgba(8, 9, 8, 0.78);
 
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --text-primary: #ebe8df;
+    --text-secondary: #a8aea4;
+    --text-muted: #7a8176;
 
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
-    --glass: rgba(30, 41, 59, 0.8);
-    --glass-border: rgba(148, 163, 184, 0.1);
+    --shadow: 0 4px 28px rgba(0, 0, 0, 0.42);
+    --shadow-lg: 0 16px 52px rgba(0, 0, 0, 0.52);
+    --glass: rgba(30, 33, 30, 0.94);
+    --glass-border: rgba(232, 229, 214, 0.1);
 
-    --hover-bg: rgba(255, 255, 255, 0.03);
-    --table-header-bg: rgba(0, 0, 0, 0.15);
-    --table-row-hover: rgba(255, 255, 255, 0.02);
+    --hover-bg: rgba(232, 229, 214, 0.06);
+    --table-header-bg: rgba(0, 0, 0, 0.22);
+    --table-row-hover: rgba(232, 229, 214, 0.04);
 }
 
-// ─── CSS Variable Aliases ────────────────────────────
 $bg-dark: var(--bg-dark);
 $bg-card: var(--bg-card);
 $bg-card-hover: var(--bg-card-hover);
@@ -73,3 +79,7 @@ $shadow: var(--shadow);
 $shadow-lg: var(--shadow-lg);
 $glass: var(--glass);
 $glass-border: var(--glass-border);
+
+$hover-bg: var(--hover-bg);
+$table-header-bg: var(--table-header-bg);
+$table-row-hover: var(--table-row-hover);

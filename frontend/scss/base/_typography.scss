@@ -1,6 +1,44 @@
 @use "../abstracts/variables" as *;
 
-h1, h2, h3 {
+@font-face {
+    font-family: "Athena";
+    src:
+        url("/public/fonts/athena-regular.ttf") format("truetype"),
+        url("/fonts/athena-regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Raleway";
+    src:
+        url("/public/fonts/Raleway.ttf") format("truetype"),
+        url("/fonts/Raleway.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Literature Decor";
+    src:
+        url("/public/fonts/Literature-Decor.ttf") format("truetype"),
+        url("/fonts/Literature-Decor.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+html {
+    font-family: $font-sans;
+}
+
+// Базовые уровни заголовков — Raleway; декоративные шрифты только у классов (.services-section__title и т.д.).
+h1,
+h2,
+h3 {
+    font-family: $font-sans;
     color: $text-primary;
     font-weight: 700;
     line-height: 1.2;
@@ -14,8 +52,9 @@ h3 { font-size: 1.8rem; }
 .accent { color: $accent; }
 
 .title {
-    font-size: 1.875rem; // text-3xl
-    font-weight: 700; // font-bold
-    color: #111827; // gray-900
-    margin-bottom: 1rem; // mb-4
+    font-family: $font-sans;
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 1rem;
 }

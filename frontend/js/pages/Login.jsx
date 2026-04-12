@@ -26,41 +26,56 @@ export default function Login() {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                <h1>Вход</h1>
-                <p className="auth-subtitle">Войдите в свой аккаунт</p>
+                <header className="auth-form__head">
+                    <h1 className="auth-form__title">Вход</h1>
+                    <p className="auth-form__subtitle">Войдите в свой аккаунт</p>
+                </header>
 
-                {error && <div className="alert alert-error">{error}</div>}
+                {error && (
+                    <div className="auth-form__alert auth-form__alert--error" role="alert">
+                        {error}
+                    </div>
+                )}
 
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="login-email">Email</label>
+                <form className="auth-form" onSubmit={handleSubmit} noValidate>
+                    <div className="auth-form__field">
+                        <label className="auth-form__label" htmlFor="login-email">
+                            Email
+                        </label>
                         <input
                             id="login-email"
+                            className="auth-form__control"
                             type="email"
                             value={form.email}
                             onChange={(e) => setForm({ ...form, email: e.target.value })}
                             placeholder="example@mail.com"
                             required
+                            autoComplete="email"
                         />
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="login-password">Пароль</label>
+                    <div className="auth-form__field">
+                        <label className="auth-form__label" htmlFor="login-password">
+                            Пароль
+                        </label>
                         <input
                             id="login-password"
+                            className="auth-form__control"
                             type="password"
                             value={form.password}
                             onChange={(e) => setForm({ ...form, password: e.target.value })}
                             placeholder="••••••"
                             required
+                            autoComplete="current-password"
                         />
                     </div>
-                    <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                        {loading ? 'Вход...' : 'Войти'}
+                    <button type="submit" className="auth-form__submit" disabled={loading}>
+                        {loading ? 'Вход…' : 'Войти'}
                     </button>
                 </form>
 
                 <p className="auth-footer">
-                    Нет аккаунта? <Link to="/register">Зарегистрируйтесь</Link>
+                    Нет аккаунта?{' '}
+                    <Link to="/register">Зарегистрируйтесь</Link>
                 </p>
             </div>
         </div>

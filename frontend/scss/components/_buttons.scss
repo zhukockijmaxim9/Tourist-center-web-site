@@ -7,12 +7,20 @@
     gap: 0.6rem;
     padding: 1rem 2rem;
     border-radius: $radius;
+    font-family: $font-sans;
     font-size: 1.4rem;
     font-weight: 600;
     text-decoration: none;
     border: none;
     cursor: pointer;
-    transition: $transition;
+    transition:
+        transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.22s ease,
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        opacity 0.2s ease,
+        filter 0.2s ease;
     white-space: nowrap;
 
     &:disabled {
@@ -29,6 +37,19 @@
     &:hover:not(:disabled) {
         transform: translateY(-1px);
         box-shadow: 0 4px 20px rgba($primary, 0.4);
+    }
+}
+
+// Better contrast on dark hero sections
+.navbar--hero ~ * .btn-outline,
+.hero .btn-outline {
+    color: rgba(255, 255, 255, 0.86);
+    border-color: rgba(255, 255, 255, 0.22);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.10);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.35);
     }
 }
 
@@ -93,12 +114,12 @@
         font-size: 1rem;
         text-decoration: none;
         display: inline-block;
-        background-color: #059669; // emerald-600
+        background-color: $primary-dark;
         color: #ffffff;
         border: none;
 
         &:hover {
-            background-color: #047857; // emerald-700
+            background-color: #232d38;
         }
     }
 }

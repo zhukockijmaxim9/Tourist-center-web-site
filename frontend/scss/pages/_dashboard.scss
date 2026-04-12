@@ -4,6 +4,19 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 3.2rem 2.4rem;
+    animation: motion-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dashboard-inline-link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    font-weight: 600;
+    opacity: 0.95;
+
+    &:hover {
+        opacity: 1;
+    }
 }
 
 .dashboard-header {
@@ -26,6 +39,73 @@
     margin-bottom: 4rem;
 
     h2 { margin-bottom: 2rem; }
+}
+
+.service-filters {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.service-search {
+    min-width: 240px;
+    flex: 1;
+    max-width: 420px;
+
+    input {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        border-radius: 100px;
+        border: 1px solid $glass-border;
+        background: $bg-card;
+        color: $text-primary;
+        transition: $transition;
+
+        &:focus {
+            outline: none;
+            border-color: rgba($primary, 0.55);
+            box-shadow: 0 0 0 3px rgba($primary, 0.15);
+        }
+
+        &::placeholder {
+            color: $text-muted;
+        }
+    }
+}
+
+.service-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem 1.4rem;
+    border-radius: 100px;
+    border: 1px solid $glass-border;
+    background: $bg-card;
+    color: $text-secondary;
+    font-weight: 700;
+    cursor: pointer;
+    transition: $transition;
+    white-space: nowrap;
+
+    &:hover {
+        background: $bg-card-hover;
+        color: $text-primary;
+    }
+
+    &.active {
+        border-color: rgba($success, 0.55);
+        color: $success;
+        background: rgba($success, 0.08);
+    }
+}
+
+.service-category-tabs {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 1.8rem;
 }
 
 .section-header {
@@ -100,7 +180,6 @@
     }
 }
 
-// ─── Lead CRM List ──────────────────────────────────
 .lead-filters {
     display: flex;
     flex-wrap: wrap;
@@ -323,5 +402,425 @@
 
     .lead-row-actions {
         justify-content: space-between;
+    }
+}
+
+.dashboard--user {
+    max-width: 1140px;
+    padding-top: 2.6rem;
+    padding-bottom: 4.8rem;
+}
+
+.user-dashboard-hero {
+    border-radius: $radius-xl;
+    border: 1px solid $glass-border;
+    background: linear-gradient(135deg, rgba($primary, 0.08), rgba($accent, 0.05));
+    box-shadow: $shadow;
+    margin-bottom: 2.8rem;
+    overflow: hidden;
+    position: relative;
+}
+
+[data-theme="dark"] .user-dashboard-hero {
+    background: linear-gradient(145deg, rgba(232, 229, 214, 0.05), rgba(30, 33, 30, 0.92));
+}
+
+.user-dashboard-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 100% 0%, rgba($primary, 0.12), transparent 55%);
+    pointer-events: none;
+}
+
+.user-dashboard-hero__inner {
+    position: relative;
+    z-index: 1;
+    padding: clamp(2.4rem, 4vw, 3.4rem) clamp(2rem, 4vw, 3.2rem);
+    max-width: 40em;
+}
+
+.user-dashboard-eyebrow {
+    font-family: "Athena", "Raleway", system-ui, sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: $text-muted;
+    margin: 0 0 0.75rem;
+}
+
+.user-dashboard-eyebrow--muted {
+    color: $text-muted;
+}
+
+.user-dashboard-hero__title {
+    font-family: "Literature Decor", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-size: clamp(2.2rem, 4vw, 3rem);
+    line-height: 1.12;
+    color: $text-primary;
+    margin: 0 0 1rem;
+    letter-spacing: 0.02em;
+}
+
+.user-dashboard-hero__lead {
+    margin: 0 0 1.6rem;
+    font-size: 1.45rem;
+    line-height: 1.55;
+    color: $text-secondary;
+}
+
+.user-dashboard-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.user-dashboard-hero__link {
+    border-radius: 100px;
+    font-weight: 600;
+}
+
+.user-dashboard-rail {
+    position: sticky;
+    top: 78px;
+    z-index: 24;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    margin: 0 0 2rem;
+    border-radius: 100px;
+    border: 1px solid $glass-border;
+    background: $glass;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .user-dashboard-rail {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.user-dashboard-rail__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1.35rem;
+    border: none;
+    border-radius: 100px;
+    font-family: "Raleway", system-ui, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: $text-secondary;
+    background: transparent;
+    cursor: pointer;
+    transition: $transition;
+
+    &:hover {
+        color: $text-primary;
+        background: $hover-bg;
+    }
+}
+
+.user-dashboard-rail__count {
+    min-width: 1.85rem;
+    height: 1.85rem;
+    padding: 0 0.45rem;
+    border-radius: 100px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.85rem;
+    text-align: center;
+    background: rgba($primary, 0.15);
+    color: $primary;
+}
+
+[data-theme="dark"] .user-dashboard-rail__count {
+    background: rgba(232, 229, 214, 0.12);
+    color: rgba(232, 229, 214, 0.95);
+}
+
+.dashboard--user .user-dashboard-panel {
+    scroll-margin-top: 96px;
+}
+
+.user-dashboard-services-meta {
+    margin: 0 0 1.25rem;
+    font-size: 1.3rem;
+    color: $text-muted;
+
+    strong {
+        color: $services-ink;
+        font-weight: 700;
+    }
+}
+
+[data-theme="dark"] .user-dashboard-services-meta strong {
+    color: rgba(210, 222, 206, 0.95);
+}
+
+.user-dashboard-leads-meta {
+    margin: 0.35rem 0 0;
+    font-size: 1.25rem;
+    color: $text-muted;
+    font-weight: 500;
+}
+
+// Поиск + переключатель «доступные» — в одну линию с главной, по центру как фильтры.
+.user-dashboard-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem 1rem;
+    max-width: 100%;
+}
+
+.user-dashboard-toolbar__search {
+    flex: 1 1 240px;
+    min-width: min(100%, 220px);
+    max-width: 420px;
+}
+
+.dashboard--user .user-dashboard-services-filter,
+.dashboard--user .user-dashboard-leads-filter {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0.35rem;
+}
+
+.dashboard--user .user-dashboard-leads-filter {
+    margin-bottom: 1.35rem;
+}
+
+.user-dashboard-services-filter__heading,
+.user-dashboard-leads-filter__heading {
+    margin-bottom: 1.25rem;
+}
+
+.dashboard--user .service-search--enhanced {
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: 1.1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1.25rem;
+        height: 1.25rem;
+        opacity: 0.5;
+        pointer-events: none;
+        background: center / contain no-repeat
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5' stroke='%235f7388' stroke-width='2'/%3E%3Cpath stroke='%235f7388' stroke-width='2' stroke-linecap='round' d='M16 16l4 4'/%3E%3C/svg%3E");
+    }
+
+    input {
+        padding-left: 3.35rem;
+    }
+}
+
+[data-theme="dark"] .dashboard--user .service-search--enhanced::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5' stroke='%237a8176' stroke-width='2'/%3E%3Cpath stroke='%237a8176' stroke-width='2' stroke-linecap='round' d='M16 16l4 4'/%3E%3C/svg%3E");
+    opacity: 0.65;
+}
+
+.user-dashboard-panel {
+    border-radius: $radius-xl;
+    border: 1px solid rgba($landing-moss, 0.14);
+    background: linear-gradient(180deg, rgba($landing-bg, 0.42) 0%, $bg-card 32%, $bg-card 100%);
+    box-shadow: $shadow;
+    padding: clamp(2rem, 3vw, 2.6rem);
+    margin-bottom: 2.4rem;
+}
+
+[data-theme="dark"] .user-dashboard-panel {
+    background: linear-gradient(180deg, rgba(28, 32, 28, 0.92) 0%, $bg-card 40%, $bg-card 100%);
+    border-color: rgba($landing-moss, 0.22);
+    box-shadow: 0 8px 36px rgba(0, 0, 0, 0.35);
+}
+
+.user-dashboard-panel--leads {
+    padding-bottom: clamp(2rem, 3vw, 2.4rem);
+}
+
+.user-dashboard-section-head {
+    align-items: flex-end;
+    margin-bottom: 2rem;
+}
+
+.user-dashboard-section-head__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.user-dashboard-section-head .user-dashboard-toolbar {
+    flex-shrink: 0;
+}
+
+.user-dashboard-section-title {
+    font-family: "Literature Decor", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-size: clamp(2rem, 3vw, 2.45rem);
+    color: $text-primary;
+    margin: 0;
+    line-height: 1.15;
+    letter-spacing: 0.03em;
+}
+
+.dashboard--user .dashboard-section {
+    margin-bottom: 0;
+}
+
+.dashboard--user .section-header {
+    margin-bottom: 1.6rem;
+}
+
+// Карточки услуг — те же классы, что на главной (service-showcase + сетка showcase).
+.dashboard--user .service-showcase--inactive-dash {
+    cursor: default;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+[data-theme="dark"] .dashboard--user .service-showcase__title {
+    color: $text-primary;
+}
+
+.user-dashboard-placeholder {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    font-size: 1.45rem;
+    color: $text-muted;
+    margin: 0;
+    border-radius: $radius-lg;
+    border: 1px dashed rgba($landing-moss, 0.28);
+    background: rgba($landing-moss, 0.06);
+}
+
+.user-dashboard-placeholder--table {
+    margin: 1rem 0 0;
+    border-style: solid;
+    color: rgba($services-ink, 0.72);
+}
+
+[data-theme="dark"] .user-dashboard-placeholder {
+    border-color: rgba(232, 229, 214, 0.18);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .user-dashboard-placeholder--table {
+    color: $text-secondary;
+}
+
+.user-dashboard-btn-new {
+    border-radius: 100px;
+    padding-left: 1.8rem;
+    padding-right: 1.8rem;
+    font-weight: 600;
+}
+
+.user-dashboard-empty-leads {
+    text-align: center;
+    padding: 3.2rem 2rem;
+    border-radius: $radius-lg;
+    border: 1px dashed $glass-border;
+    background: linear-gradient(180deg, rgba($primary, 0.04), transparent);
+}
+
+[data-theme="dark"] .user-dashboard-empty-leads {
+    background: linear-gradient(180deg, rgba(232, 229, 214, 0.04), transparent);
+}
+
+.user-dashboard-empty-leads__title {
+    font-family: "Literature Decor", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-size: 2rem;
+    color: $text-primary;
+    margin: 0 0 0.75rem;
+}
+
+.user-dashboard-empty-leads__text {
+    margin: 0 auto 1.8rem;
+    max-width: 28em;
+    font-size: 1.4rem;
+    line-height: 1.55;
+    color: $text-secondary;
+}
+
+.user-dashboard-table-shell {
+    margin-top: 0.5rem;
+}
+
+.dashboard--user .user-dashboard-table-shell .table-wrapper {
+    border-radius: $radius-lg;
+    border: 1px solid $glass-border;
+    overflow: hidden;
+    box-shadow: none;
+    background: $bg-surface;
+}
+
+.dashboard--user .user-dashboard-table-shell .data-table {
+    font-size: 1.35rem;
+
+    th {
+        font-size: 1.1rem;
+        padding: 1.2rem 1.4rem;
+        background: rgba($landing-moss, 0.12);
+        color: rgba($services-ink, 0.78);
+        border-bottom-color: $glass-border;
+    }
+
+    td {
+        padding: 1.15rem 1.4rem;
+        vertical-align: middle;
+    }
+
+    tbody tr:hover td {
+        background: rgba($landing-moss, 0.06);
+    }
+}
+
+[data-theme="dark"] .dashboard--user .user-dashboard-table-shell .data-table th {
+    background: rgba($landing-moss, 0.18);
+    color: rgba(210, 222, 206, 0.88);
+}
+
+.user-dashboard-confirm-text {
+    margin-top: 0;
+    font-size: 1.4rem;
+    color: $text-secondary;
+    line-height: 1.5;
+}
+
+.user-dashboard-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .user-dashboard-section-head.section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .user-dashboard-section-head .user-dashboard-toolbar {
+        width: 100%;
+    }
+
+    .user-dashboard-hero__inner {
+        max-width: none;
     }
 }

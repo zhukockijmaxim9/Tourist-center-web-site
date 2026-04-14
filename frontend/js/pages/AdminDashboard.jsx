@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { usersApi, servicesApi, leadsApi, categoriesApi, reviewsApi } from '../api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
+import { useNotify, getErrorMessage } from '../context/NotifyContext';
 
 const TABS = [
     { key: 'users', label: '👥 Пользователи' },
@@ -31,6 +32,7 @@ const LEAD_STATUS_COLORS = {
 };
 
 export default function AdminDashboard() {
+    const notify = useNotify();
     const [tab, setTab] = useState('users');
     const [users, setUsers] = useState([]);
     const [services, setServices] = useState([]);
@@ -44,6 +46,9 @@ export default function AdminDashboard() {
     const [error, setError] = useState('');
     const [leadStatusFilter, setLeadStatusFilter] = useState('all');
     const [confirmModal, setConfirmModal] = useState({ isOpen: false });
+    const [query, setQuery] = useState({ users: '', services: '', categories: '', leads: '', reviews: '' });
+    const [leadContactModal, setLeadContactModal] = useState({ isOpen: false, lead: null });
+    const [reviewSort, setReviewSort] = useState('best');
 
     useEffect(() => { loadAll(); }, []);
 
@@ -62,11 +67,14 @@ export default function AdminDashboard() {
             setCategories(c.data);
             setReviews(r.data);
         } catch (err) {
-            alert('Ошибка загрузки данных: ' + (err.response?.data?.message || err.message));
+            notify.fromError(err, 'Ошибка загрузки данных');
         }
     };
 
     const update = (key, val) => setForm({ ...form, [key]: val });
+
+    const q = (tabKey) => (query[tabKey] || '').trim().toLowerCase();
+    const setQ = (tabKey, value) => setQuery((prev) => ({ ...prev, [tabKey]: value }));
 
     const userColumns = [
         { key: 'id', label: 'ID' },
@@ -272,6 +280,50 @@ export default function AdminDashboard() {
         ? leads
         : leads.filter((l) => l.status === leadStatusFilter);
 
+    const openLeadContact = async (lead) => {
+        try {
+            const res = await leadsApi.claim(lead.id);
+            const claimed = res.data;
+            setLeads((prev) => prev.map((x) => (x.id === claimed.id ? { ...x, ...claimed } : x)));
+            setLeadContactModal({ isOpen: true, lead: claimed });
+        } catch (err) {
+            notify.fromError(err, 'Не удалось взять заявку в работу');
+        }
+    };
+
+    const closeLeadContact = () => setLeadContactModal({ isOpen: false, lead: null });
+
+    const actLead = async (action) => {
+        const lead = leadContactModal.lead;
+        if (!lead) return;
+
+        try {
+            if (action === 'postpone') {
+                await leadsApi.release(lead.id);
+                notify.info('Заявка отложена');
+            }
+
+            if (action === 'reject') {
+                const res = await leadsApi.update(lead.id, { status: 'cancelled' });
+                await leadsApi.release(lead.id);
+                setLeads((prev) => prev.map((x) => (x.id === lead.id ? { ...x, ...res.data } : x)));
+                notify.success('Заявка отклонена');
+            }
+
+            if (action === 'done') {
+                const res = await leadsApi.update(lead.id, { status: 'done' });
+                await leadsApi.release(lead.id);
+                setLeads((prev) => prev.map((x) => (x.id === lead.id ? { ...x, ...res.data } : x)));
+                notify.success('Заявка отмечена как выполненная');
+            }
+
+            closeLeadContact();
+            loadAll();
+        } catch (err) {
+            notify.fromError(err, 'Не удалось обновить заявку');
+        }
+    };
+
     const leadCountByStatus = (status) => leads.filter((l) => l.status === status).length;
 
     const openLeadEdit = async (l) => {
@@ -334,7 +386,7 @@ export default function AdminDashboard() {
                 setForm((currentForm) => ({ ...currentForm, status: updatedLead.status }));
             }
         } catch (err) {
-            alert(err.response?.data?.message || 'Не удалось обновить статус заявки');
+            notify.fromError(err, 'Не удалось обновить статус заявки');
         }
     };
 
@@ -344,7 +396,7 @@ export default function AdminDashboard() {
             const updatedLead = res.data;
             setLeads((current) => current.map((x) => (x.id === lead.id ? { ...x, ...updatedLead } : x)));
         } catch (err) {
-            alert(err.response?.data?.message || 'Не удалось взять заявку в работу');
+            notify.fromError(err, 'Не удалось взять заявку в работу');
         }
     };
 
@@ -354,7 +406,7 @@ export default function AdminDashboard() {
             const updatedLead = res.data;
             setLeads((current) => current.map((x) => (x.id === lead.id ? { ...x, ...updatedLead } : x)));
         } catch (err) {
-            alert(err.response?.data?.message || 'Не удалось подтвердить заявку');
+            notify.fromError(err, 'Не удалось подтвердить заявку');
         }
     };
 
@@ -378,12 +430,52 @@ export default function AdminDashboard() {
         if (typeof msg === 'object') {
             setError(Object.values(msg).flat().join('. '));
         } else {
-            setError(err.response?.data?.message || 'Ошибка');
+            setError(getErrorMessage(err, 'Ошибка'));
         }
     };
 
+    const usersFiltered = users.filter((u) => {
+        const s = q('users');
+        if (!s) return true;
+        return `${u.name || ''} ${u.email || ''} ${u.phone || ''}`.toLowerCase().includes(s);
+    });
+
+    const servicesFiltered = services.filter((s) => {
+        const needle = q('services');
+        if (!needle) return true;
+        return `${s.name || ''} ${s.description || ''} ${s.category?.name || ''}`.toLowerCase().includes(needle);
+    });
+
+    const categoriesFiltered = categories.filter((c) => {
+        const needle = q('categories');
+        if (!needle) return true;
+        return `${c.name || ''} ${c.description || ''}`.toLowerCase().includes(needle);
+    });
+
+    const leadsFiltered = filteredLeads.filter((l) => {
+        const needle = q('leads');
+        if (!needle) return true;
+        const phone = l.phone || l.user?.phone || '';
+        return `${l.name || ''} ${l.email || ''} ${phone} ${l.service?.name || ''}`.toLowerCase().includes(needle);
+    });
+
+    const reviewsFiltered = reviews.filter((r) => {
+        const needle = q('reviews');
+        if (!needle) return true;
+        return `${r.comment || ''} ${r.service?.name || ''} ${r.user?.name || ''}`.toLowerCase().includes(needle);
+    });
+
+    const reviewsSorted = [...reviewsFiltered].sort((a, b) => {
+        const ra = Number(a?.rating || 0);
+        const rb = Number(b?.rating || 0);
+        if (ra !== rb) return reviewSort === 'worst' ? ra - rb : rb - ra;
+        const da = a?.created_at ? Date.parse(a.created_at) : 0;
+        const db = b?.created_at ? Date.parse(b.created_at) : 0;
+        return db - da;
+    });
+
     return (
-        <div className="dashboard">
+        <div className="dashboard dashboard--admin">
             <div className="dashboard-header animate-in">
                 <div>
                     <h1>Панель администратора</h1>
@@ -437,10 +529,19 @@ export default function AdminDashboard() {
             {tab === 'users' && (
                 <section className="dashboard-section">
                     <div className="section-header">
-                        <h2>Пользователи ({users.length})</h2>
+                        <div>
+                            <h2>Пользователи ({usersFiltered.length})</h2>
+                            <input
+                                className="input input-sm"
+                                placeholder="Поиск: имя, email, телефон…"
+                                value={query.users}
+                                onChange={(e) => setQ('users', e.target.value)}
+                                style={{ marginTop: '0.8rem', maxWidth: 420 }}
+                            />
+                        </div>
                         <button className="btn btn-primary" onClick={openUserCreate}>+ Добавить</button>
                     </div>
-                    <DataTable columns={userColumns} data={users} onEdit={openUserEdit} onDelete={deleteUser} />
+                    <DataTable columns={userColumns} data={usersFiltered} onEdit={openUserEdit} onDelete={deleteUser} />
                 </section>
             )}
 
@@ -448,10 +549,19 @@ export default function AdminDashboard() {
             {tab === 'services' && (
                 <section className="dashboard-section">
                     <div className="section-header">
-                        <h2>Услуги ({services.length})</h2>
+                        <div>
+                            <h2>Услуги ({servicesFiltered.length})</h2>
+                            <input
+                                className="input input-sm"
+                                placeholder="Поиск: название, категория, описание…"
+                                value={query.services}
+                                onChange={(e) => setQ('services', e.target.value)}
+                                style={{ marginTop: '0.8rem', maxWidth: 520 }}
+                            />
+                        </div>
                         <button className="btn btn-primary" onClick={openServiceCreate}>+ Добавить</button>
                     </div>
-                    <DataTable columns={serviceColumns} data={services} onEdit={openServiceEdit} onDelete={deleteService} />
+                    <DataTable columns={serviceColumns} data={servicesFiltered} onEdit={openServiceEdit} onDelete={deleteService} />
                 </section>
             )}
 
@@ -459,10 +569,19 @@ export default function AdminDashboard() {
             {tab === 'categories' && (
                 <section className="dashboard-section">
                     <div className="section-header">
-                        <h2>Категории ({categories.length})</h2>
+                        <div>
+                            <h2>Категории ({categoriesFiltered.length})</h2>
+                            <input
+                                className="input input-sm"
+                                placeholder="Поиск: название, описание…"
+                                value={query.categories}
+                                onChange={(e) => setQ('categories', e.target.value)}
+                                style={{ marginTop: '0.8rem', maxWidth: 420 }}
+                            />
+                        </div>
                         <button className="btn btn-primary" onClick={openCategoryCreate}>+ Добавить</button>
                     </div>
-                    <DataTable columns={categoryColumns} data={categories} onEdit={openCategoryEdit} onDelete={deleteCategory} />
+                    <DataTable columns={categoryColumns} data={categoriesFiltered} onEdit={openCategoryEdit} onDelete={deleteCategory} />
                 </section>
             )}
 
@@ -470,9 +589,36 @@ export default function AdminDashboard() {
             {tab === 'reviews' && (
                 <section className="dashboard-section">
                     <div className="section-header">
-                        <h2>Отзывы ({reviews.length})</h2>
+                        <div>
+                            <h2>Отзывы ({reviewsSorted.length})</h2>
+                            <input
+                                className="input input-sm"
+                                placeholder="Поиск: услуга, автор, текст…"
+                                value={query.reviews}
+                                onChange={(e) => setQ('reviews', e.target.value)}
+                                style={{ marginTop: '0.8rem', maxWidth: 520 }}
+                            />
+                            <div className="review-sort" style={{ marginTop: '0.8rem' }}>
+                                <button
+                                    type="button"
+                                    className={`review-sort__chip ${reviewSort === 'best' ? 'is-active' : ''}`}
+                                    onClick={() => setReviewSort('best')}
+                                    aria-pressed={reviewSort === 'best'}
+                                >
+                                    Лучшие
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`review-sort__chip ${reviewSort === 'worst' ? 'is-active' : ''}`}
+                                    onClick={() => setReviewSort('worst')}
+                                    aria-pressed={reviewSort === 'worst'}
+                                >
+                                    Худшие
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <DataTable columns={reviewColumns} data={reviews} onDelete={deleteReview} />
+                    <DataTable columns={reviewColumns} data={reviewsSorted} onDelete={deleteReview} />
                 </section>
             )}
 
@@ -480,7 +626,16 @@ export default function AdminDashboard() {
             {tab === 'leads' && (
                 <section className="dashboard-section">
                     <div className="section-header">
-                        <h2>Заявки ({leads.length})</h2>
+                        <div>
+                            <h2>Заявки ({leadsFiltered.length})</h2>
+                            <input
+                                className="input input-sm"
+                                placeholder="Поиск: имя, email, телефон, услуга…"
+                                value={query.leads}
+                                onChange={(e) => setQ('leads', e.target.value)}
+                                style={{ marginTop: '0.8rem', maxWidth: 520 }}
+                            />
+                        </div>
                     </div>
 
                     {/* Status filter bar */}
@@ -503,17 +658,17 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Leads list */}
-                    {filteredLeads.length === 0 ? (
+                    {leadsFiltered.length === 0 ? (
                         <div className="empty-state">Нет заявок</div>
                     ) : (
                         <div className="leads-list">
-                            {filteredLeads.map((lead) => (
+                            {leadsFiltered.map((lead) => (
                                 <div key={lead.id} className="lead-row">
                                     <div className="lead-row-main">
                                         <div className="lead-contact">
                                             <span className="lead-contact-name">{lead.name}</span>
                                             <span className="lead-contact-detail">{lead.email}</span>
-                                            <span className="lead-contact-detail">{lead.phone || 'Телефон скрыт'}</span>
+                                            <span className="lead-contact-detail">{lead.phone || lead.user?.phone || 'Телефон скрыт'}</span>
                                         </div>
                                         <div className="lead-info">
                                             <div className="lead-info-item">
@@ -542,8 +697,8 @@ export default function AdminDashboard() {
                                         </select>
                                         <div className="lead-action-buttons">
                                             {(lead.status === 'new' || (lead.status === 'in_progress' && !lead.phone)) && (
-                                                <button className="btn btn-sm btn-outline" type="button" onClick={() => claimLead(lead)}>
-                                                    ▶️ Начать
+                                                <button className="btn btn-sm btn-primary" type="button" onClick={() => openLeadContact(lead)}>
+                                                    ☎ Работать с заявкой
                                                 </button>
                                             )}
                                             {(lead.status === 'in_progress' && lead.phone) && (
@@ -566,7 +721,12 @@ export default function AdminDashboard() {
 
             {/* User Modal */}
             {tab === 'users' && (
-                <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? 'Редактировать' : 'Новый пользователь'}>
+                <Modal
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    title={editing ? 'Редактировать' : 'Новый пользователь'}
+                    contentClassName="modal-content--elva"
+                >
                     {error && <div className="alert alert-error">{error}</div>}
                     <form onSubmit={submitUser}>
                         <div className="form-group">
@@ -609,7 +769,12 @@ export default function AdminDashboard() {
 
             {/* Service Modal */}
             {tab === 'services' && (
-                <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? 'Редактировать' : 'Новая услуга'}>
+                <Modal
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    title={editing ? 'Редактировать' : 'Новая услуга'}
+                    contentClassName="modal-content--elva"
+                >
                     {error && <div className="alert alert-error">{error}</div>}
                     <form onSubmit={submitService}>
                         <div className="form-group">
@@ -647,7 +812,12 @@ export default function AdminDashboard() {
 
             {/* Lead Modal */}
             {tab === 'leads' && (
-                <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Редактировать заявку">
+                <Modal
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    title="Редактировать заявку"
+                    contentClassName="modal-content--elva"
+                >
                     {error && <div className="alert alert-error">{error}</div>}
                     <form onSubmit={submitLead}>
                         <div className="form-group">
@@ -718,7 +888,12 @@ export default function AdminDashboard() {
 
             {/* Category Modal */}
             {tab === 'categories' && (
-                <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? 'Редактировать категорию' : 'Новая категория'}>
+                <Modal
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    title={editing ? 'Редактировать категорию' : 'Новая категория'}
+                    contentClassName="modal-content--elva"
+                >
                     {error && <div className="alert alert-error">{error}</div>}
                     <form onSubmit={submitCategory}>
                         <div className="form-group">
@@ -739,6 +914,7 @@ export default function AdminDashboard() {
                 isOpen={!!confirmModal.isOpen}
                 onClose={() => setConfirmModal({ isOpen: false })}
                 title={confirmModal.title || 'Подтверждение'}
+                contentClassName="modal-content--elva"
             >
                 <p style={{ marginTop: 0 }}>{confirmModal.body || 'Вы уверены?'}</p>
                 <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
@@ -752,12 +928,42 @@ export default function AdminDashboard() {
                             try {
                                 await confirmModal.onConfirm?.();
                             } catch (err) {
-                                alert(err.response?.data?.message || err.message || 'Ошибка');
+                                notify.fromError(err, 'Ошибка');
                             }
                         }}
                     >
                         {confirmModal.confirmText || 'Ок'}
                     </button>
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={!!leadContactModal.isOpen}
+                onClose={closeLeadContact}
+                title="Связаться по телефону"
+                contentClassName="modal-content--elva"
+            >
+                <div style={{ display: 'grid', gap: '1.2rem' }}>
+                    <div className="alert" style={{ margin: 0 }}>
+                        <div style={{ fontWeight: 700, marginBottom: '0.35rem' }}>
+                            {leadContactModal.lead?.name || 'Клиент'}
+                        </div>
+                        <div style={{ fontSize: '1.7rem', letterSpacing: '0.02em' }}>
+                            {leadContactModal.lead?.phone || leadContactModal.lead?.user?.phone || 'Телефон недоступен'}
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        <button type="button" className="btn btn-outline" onClick={() => actLead('postpone')}>
+                            Отложить
+                        </button>
+                        <button type="button" className="btn btn-danger" onClick={() => actLead('reject')}>
+                            Отклонить
+                        </button>
+                        <button type="button" className="btn btn-primary" onClick={() => actLead('done')}>
+                            Выполнено
+                        </button>
+                    </div>
                 </div>
             </Modal>
         </div>

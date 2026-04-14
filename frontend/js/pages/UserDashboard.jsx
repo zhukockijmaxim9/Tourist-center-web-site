@@ -5,6 +5,7 @@ import { servicesApi, leadsApi, categoriesApi } from '../api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import { getServicePhotoUrl, serviceImageOnError } from '../utils/serviceCardImage';
+import { useNotify, getErrorMessage } from '../context/NotifyContext';
 
 const LEAD_STATUS_RU = {
     new: 'Новая',
@@ -20,6 +21,7 @@ function scrollToSection(id) {
 
 export default function UserDashboard() {
     const { user } = useAuth();
+    const notify = useNotify();
     const [services, setServices] = useState([]);
     const [categories, setCategories] = useState([]);
     const [leads, setLeads] = useState([]);
@@ -48,7 +50,7 @@ export default function UserDashboard() {
             setLeads(lRes.data);
             setCategories(cRes.data);
         } catch (err) {
-            alert('Ошибка загрузки данных: ' + (err.response?.data?.message || err.message));
+            notify.fromError(err, 'Ошибка загрузки данных');
         }
     };
 
@@ -94,7 +96,7 @@ export default function UserDashboard() {
             if (typeof msg === 'object') {
                 setError(Object.values(msg).flat().join('. '));
             } else {
-                setError(err.response?.data?.message || 'Ошибка');
+                setError(getErrorMessage(err, 'Ошибка'));
             }
         }
     };
@@ -515,7 +517,7 @@ export default function UserDashboard() {
                             try {
                                 await confirmModal.onConfirm?.();
                             } catch (err) {
-                                alert(err.response?.data?.message || err.message || 'Ошибка');
+                                notify.fromError(err, 'Ошибка');
                             }
                         }}
                     >

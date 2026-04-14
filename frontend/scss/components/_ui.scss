@@ -104,10 +104,79 @@
     padding: 2rem 2.4rem 2.4rem;
 }
 
+.toast-stack {
+    position: fixed;
+    top: 1.2rem;
+    right: 1.2rem;
+    z-index: 260;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: min(380px, calc(100vw - 2.4rem));
+}
+
+.toast {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: $radius-lg;
+    box-shadow: $shadow-lg;
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    backdrop-filter: blur(14px) saturate(1.05);
+    -webkit-backdrop-filter: blur(14px) saturate(1.05);
+}
+
+[data-theme="dark"] .toast {
+    background: rgba(24, 26, 23, 0.92);
+    border-color: rgba(232, 229, 214, 0.12);
+}
+
+.toast__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 0.25rem;
+}
+
+.toast__message {
+    font-size: 1.3rem;
+    color: $text-secondary;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.toast__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $text-muted;
+    font-size: 2.2rem;
+    line-height: 1;
+    padding: 0;
+    margin-top: -0.2rem;
+}
+
+.toast--success {
+    border-color: rgba($success, 0.22);
+}
+
+.toast--error {
+    border-color: rgba($danger, 0.26);
+}
+
+.toast--info {
+    border-color: rgba($primary, 0.22);
+}
+
 .modal-content--elva {
-    background: linear-gradient(165deg, rgba($landing-moss, 0.1) 0%, #f0eee6 42%, #ebe8df 100%);
-    border: 1px solid rgba($landing-moss, 0.28);
-    box-shadow: 0 22px 56px rgba(42, 52, 40, 0.14);
+    background: rgba(248, 247, 243, 0.96);
+    border: 1px solid rgba($landing-moss, 0.22);
+    box-shadow:
+        0 24px 60px rgba(42, 52, 40, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
 
     .modal-header {
         padding: 2.2rem 2.4rem 1.2rem;
@@ -163,9 +232,11 @@
 }
 
 [data-theme="dark"] .modal-content--elva {
-    background: linear-gradient(165deg, rgba(36, 42, 34, 0.98) 0%, rgba(24, 26, 23, 0.99) 100%);
-    border-color: rgba($landing-moss, 0.35);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    background: rgba(24, 26, 23, 0.96);
+    border-color: rgba($landing-moss, 0.28);
+    box-shadow:
+        0 26px 70px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(232, 229, 214, 0.06);
 
     .modal-header {
         border-bottom-color: rgba(232, 229, 214, 0.12);

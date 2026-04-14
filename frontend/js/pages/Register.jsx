@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getErrorMessage } from '../context/NotifyContext';
 
 export default function Register() {
     const { register } = useAuth();
@@ -21,7 +22,7 @@ export default function Register() {
             if (typeof msg === 'object') {
                 setError(Object.values(msg).flat().join('. '));
             } else {
-                setError(msg || 'Ошибка регистрации');
+                setError(getErrorMessage(err, 'Ошибка регистрации'));
             }
         } finally {
             setLoading(false);

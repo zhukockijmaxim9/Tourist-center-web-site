@@ -4,9 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { servicesApi, leadsApi, categoriesApi, reviewsApi } from '../api';
 import Modal from '../components/Modal';
 import { getServicePhotoUrl, serviceImageOnError } from '../utils/serviceCardImage';
+import { useNotify, getErrorMessage } from '../context/NotifyContext';
 
 export default function Landing() {
     const { user } = useAuth();
+    const notify = useNotify();
     const [services, setServices] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -26,8 +28,8 @@ export default function Landing() {
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        servicesApi.getAll().then((res) => setServices(res.data)).catch((err) => console.error('Ошибка загрузки услуг:', err));
-        categoriesApi.getAll().then((res) => setCategories(res.data)).catch((err) => console.error('Ошибка загрузки категорий:', err));
+        servicesApi.getAll().then((res) => setServices(res.data)).catch((err) => notify.fromError(err, 'Не удалось загрузить услуги'));
+        categoriesApi.getAll().then((res) => setCategories(res.data)).catch((err) => notify.fromError(err, 'Не удалось загрузить категории'));
     }, []);
 
     const openServiceDetails = async (service) => {
@@ -37,7 +39,7 @@ export default function Landing() {
             setServiceDetails(res.data);
             setShowServiceModal(true);
         } catch (err) {
-            alert('Ошибка загрузки деталей услуги');
+            notify.fromError(err, 'Ошибка загрузки деталей услуги');
         }
     };
 
@@ -48,12 +50,12 @@ export default function Landing() {
                 service_id: selectedService.id,
                 ...reviewForm
             });
-            alert('Спасибо! Ваш отзыв отправлен на модерацию.');
+            notify.success('Спасибо! Ваш отзыв отправлен на модерацию.');
             setReviewForm({ rating: 5, comment: '' });
             const res = await servicesApi.getOne(selectedService.id);
             setServiceDetails(res.data);
         } catch (err) {
-            alert(err.response?.data?.message || 'Ошибка при отправке отзыва');
+            notify.fromError(err, 'Ошибка при отправке отзыва');
         }
     };
 
@@ -91,7 +93,7 @@ export default function Landing() {
             if (typeof msg === 'object') {
                 setError(Object.values(msg).flat().join('. '));
             } else {
-                setError(err.response?.data?.message || 'Ошибка при отправке');
+                setError(getErrorMessage(err, 'Ошибка при отправке'));
             }
         }
     };

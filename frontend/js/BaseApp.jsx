@@ -2,6 +2,7 @@ import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { NotifyProvider } from './context/NotifyContext';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -70,11 +71,13 @@ const App = () => {
     return (
         <HashRouter>
             <ThemeProvider>
-                <AuthProvider>
-                    <ErrorBoundary>
-                        <AppRoutes />
-                    </ErrorBoundary>
-                </AuthProvider>
+                <NotifyProvider>
+                    <AuthProvider>
+                        <ErrorBoundary>
+                            <AppRoutes />
+                        </ErrorBoundary>
+                    </AuthProvider>
+                </NotifyProvider>
             </ThemeProvider>
         </HashRouter>
     );

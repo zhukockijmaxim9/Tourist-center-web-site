@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, router } from '@inertiajs/react';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../context/NotifyContext';
 
 export default function Login() {
     const { login } = useAuth();
-    const navigate = useNavigate();
     const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -16,7 +15,7 @@ export default function Login() {
         setLoading(true);
         try {
             const user = await login(form.email, form.password);
-            navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+            router.visit(user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/dashboard');
         } catch (err) {
             setError(getErrorMessage(err, 'Ошибка входа'));
         } finally {
@@ -75,8 +74,7 @@ export default function Login() {
                 </form>
 
                 <p className="auth-footer">
-                    Нет аккаунта?{' '}
-                    <Link to="/register">Зарегистрируйтесь</Link>
+                    Нет аккаунта? <Link href="/register">Зарегистрируйтесь</Link>
                 </p>
             </div>
         </div>

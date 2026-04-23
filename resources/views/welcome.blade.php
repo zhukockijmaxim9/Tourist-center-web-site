@@ -3,13 +3,13 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Laravel + React</title>
+        <title>Laravel + Inertia + React</title>
 
-        <!-- Vite React Refresh and Assets -->
         @viteReactRefresh
-        @vite(['frontend/scss/app.scss', 'frontend/js/index.jsx'])
+        @vite(['resources/scss/app.scss', 'resources/js/app.jsx'])
+        @inertiaHead
     </head>
     <body class="antialiased bg-gray-100">
-        <div id="app"></div>
+        @inertia
     </body>
 </html>

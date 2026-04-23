@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, router, usePage } from '@inertiajs/react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { isDisplayableAvatarUrl, clampAvatarStyle, AVATAR_GRADIENTS } from '../utils/avatar';
@@ -8,16 +8,15 @@ import { IconThemeMoon, IconThemeSun } from './icons/ThemeToggleIcons';
 export default function Navbar() {
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
-    const navigate = useNavigate();
-    const location = useLocation();
+    const { url } = usePage();
     const userInitial = user?.name?.trim?.()?.[0]?.toUpperCase?.() || '·';
     const navAvatarImg = user && isDisplayableAvatarUrl(user.avatar_url);
     const navPreset = clampAvatarStyle(user?.avatar_style);
-    const isLanding = location.pathname === '/';
+    const isLanding = url === '/' || url.startsWith('/?');
 
     const handleLogout = async () => {
         await logout();
-        navigate('/');
+        router.visit('/');
     };
 
     return (
@@ -26,7 +25,7 @@ export default function Navbar() {
             aria-label="Основная навигация"
         >
             <div className="navbar-inner">
-                <Link to="/" className="navbar-brand">
+                <Link href="/" className="navbar-brand">
                     <span className="navbar-brand__word">ELVA</span>
                     <span className="navbar-brand__tag">главная</span>
                 </Link>
@@ -52,7 +51,7 @@ export default function Navbar() {
                     {user ? (
                         <>
                             <Link
-                                to="/account"
+                                href="/account"
                                 className="navbar-link navbar-link--account"
                                 title="Личный кабинет"
                             >
@@ -83,10 +82,10 @@ export default function Navbar() {
                         </>
                     ) : (
                         <>
-                            <Link to="/login" className="navbar-link navbar-link--guest">
+                            <Link href="/login" className="navbar-link navbar-link--guest">
                                 Войти
                             </Link>
-                            <Link to="/register" className="navbar-cta">
+                            <Link href="/register" className="navbar-cta">
                                 Регистрация
                             </Link>
                         </>

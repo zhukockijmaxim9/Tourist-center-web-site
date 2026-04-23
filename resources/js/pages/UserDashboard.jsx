@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@inertiajs/react';
 import { useAuth } from '../context/AuthContext';
 import { servicesApi, leadsApi, categoriesApi } from '../api';
 import DataTable from '../components/DataTable';
@@ -184,7 +184,7 @@ export default function UserDashboard() {
                         Каталог услуг и ваши заявки в одном месте. Обновите профиль или аватар в любой момент.
                     </p>
                     <div className="user-dashboard-hero__actions">
-                        <Link to="/account" className="btn btn-outline user-dashboard-hero__link">
+                        <Link href="/account" className="btn btn-outline user-dashboard-hero__link">
                             Личный кабинет
                         </Link>
                         <button
@@ -528,3 +528,4 @@ export default function UserDashboard() {
         </div>
     );
 }
+

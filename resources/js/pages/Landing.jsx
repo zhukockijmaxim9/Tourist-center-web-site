@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@inertiajs/react';
 import { useAuth } from '../context/AuthContext';
 import { servicesApi, leadsApi, categoriesApi, reviewsApi } from '../api';
 import Modal from '../components/Modal';
@@ -123,18 +123,17 @@ export default function Landing() {
                     </p>
                     <div className="hero-actions">
                         {user ? (
-                            <Link
-                                to={user.role === 'admin' ? '/admin' : '/dashboard'}
+                            <Link href={user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/dashboard'}
                                 className="btn btn-lg btn--hero-wire"
                             >
                                 Перейти в личный кабинет
                             </Link>
                         ) : (
                             <>
-                                <Link to="/register" className="btn btn-lg btn--hero-wire">
+                                <Link href="/register" className="btn btn-lg btn--hero-wire">
                                     Начать сейчас
                                 </Link>
-                                <Link to="/login" className="btn btn-lg btn--hero-wire">
+                                <Link href="/login" className="btn btn-lg btn--hero-wire">
                                     Войти
                                 </Link>
                             </>
@@ -298,7 +297,7 @@ export default function Landing() {
                 <section className="section section-cta">
                     <h2>Готовы к приключениям?</h2>
                     <p>Зарегистрируйтесь и получите доступ к расширенным функциям личного кабинета</p>
-                    <Link to="/register" className="btn btn-outline btn-lg">
+                    <Link href="/register" className="btn btn-outline btn-lg">
                         Зарегистрироваться
                     </Link>
                 </section>
@@ -510,7 +509,7 @@ export default function Landing() {
 
                         {!user && (
                             <div className="review-notice">
-                                <span>🔑</span> <Link to="/login">Войдите</Link>, чтобы оставить отзыв.
+                                <span>🔑</span> <Link href="/login">Войдите</Link>, чтобы оставить отзыв.
                             </div>
                         )}
                         
@@ -525,3 +524,4 @@ export default function Landing() {
         </div>
     );
 }
+

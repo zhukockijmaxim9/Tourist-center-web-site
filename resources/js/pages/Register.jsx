@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, router } from '@inertiajs/react';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../context/NotifyContext';
 
 export default function Register() {
     const { register } = useAuth();
-    const navigate = useNavigate();
     const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -15,8 +14,8 @@ export default function Register() {
         setError('');
         setLoading(true);
         try {
-            await register(form);
-            navigate('/dashboard');
+            const user = await register(form);
+            router.visit(user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/dashboard');
         } catch (err) {
             const msg = err.response?.data?.message || err.response?.data?.errors;
             if (typeof msg === 'object') {
@@ -111,7 +110,7 @@ export default function Register() {
                 </form>
 
                 <p className="auth-footer">
-                    Уже есть аккаунт? <Link to="/login">Войдите</Link>
+                    Уже есть аккаунт? <Link href="/login">Войдите</Link>
                 </p>
             </div>
         </div>

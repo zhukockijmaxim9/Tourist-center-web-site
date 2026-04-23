@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@inertiajs/react';
 import { usersApi, servicesApi, leadsApi, categoriesApi, reviewsApi } from '../api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
@@ -481,7 +481,7 @@ export default function AdminDashboard() {
                     <h1>Панель администратора</h1>
                     <p className="text-muted">
                         Управление пользователями, услугами и заявками.{' '}
-                        <Link to="/account" className="dashboard-inline-link">
+                        <Link href="/account" className="dashboard-inline-link">
                             Личный кабинет
                         </Link>
                     </p>
@@ -969,3 +969,4 @@ export default function AdminDashboard() {
         </div>
     );
 }
+

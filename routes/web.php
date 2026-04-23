@@ -1,24 +1,28 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
-// =====================
-// API Routes
-// =====================
 Route::prefix('api')->group(function () {
-    // Auth
     require __DIR__.'/auth.php';
-    
-    // Admin Routes
     require __DIR__.'/admin.php';
-    
-    // Public & User Routes
     require __DIR__.'/api_v1.php';
 });
 
-// ===================== 
-// SPA catch-all — returns React frontend (ONLY for GET requests)
-// =====================
-Route::get('/{any?}', function () {
-    return view('welcome');
-})->where('any', '.*')->name('spa.fallback');
+Route::get('/', fn () => Inertia::render('Landing'))->name('home');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', fn () => Inertia::render('Login'))->name('login');
+    Route::get('/register', fn () => Inertia::render('Register'))->name('register');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/account', fn () => Inertia::render('Account'))->name('account');
+    Route::get('/dashboard', fn () => Inertia::render('UserDashboard'))->name('dashboard');
+});
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin', fn () => Inertia::render('AdminDashboard'))->name('admin.dashboard');
+});
+
+Route::fallback(fn () => to_route('home'));

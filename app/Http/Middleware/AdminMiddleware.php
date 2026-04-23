@@ -10,7 +10,11 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (!auth()->check() || !auth()->user()->isAdmin()) {
-            return response()->json(['message' => 'Доступ запрещён'], 403);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Доступ запрещён'], 403);
+            }
+
+            abort(403, 'Доступ запрещён');
         }
 
         return $next($request);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { Link, usePage } from '@inertiajs/react';
 import { useAuth } from '../context/AuthContext';
 import { leadsApi, usersApi } from '../api';
 import { isDisplayableAvatarUrl, clampAvatarStyle, AVATAR_GRADIENTS } from '../utils/avatar';
@@ -20,6 +20,7 @@ function roleHint(role) {
 
 export default function Account() {
     const { user, updateProfile } = useAuth();
+    const { url } = usePage();
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [avatarStyle, setAvatarStyle] = useState(0);
@@ -30,6 +31,7 @@ export default function Account() {
     const [stats, setStats] = useState({ leads: null, users: null, servicesHint: null });
 
     const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+    const isActive = (path) => url === path || url.startsWith(`${path}?`);
 
     useEffect(() => {
         if (!user) return;
@@ -160,25 +162,25 @@ export default function Account() {
                     <p className="account-sidebar__sub">Профиль и переходы</p>
                 </div>
                 <nav className="account-nav" aria-label="Разделы кабинета">
-                    <NavLink to="/account" end className="account-nav__link">
+                    <Link href="/account" className={`account-nav__link ${isActive('/account') ? 'active' : ''}`}>
                         <span className="account-nav__text">Профиль</span>
-                    </NavLink>
+                    </Link>
                     {isAdmin ? (
-                        <NavLink to="/admin" className="account-nav__link">
+                        <Link href="/admin" className={`account-nav__link ${isActive('/admin') ? 'active' : ''}`}>
                             <span className="account-nav__text">Панель управления</span>
-                        </NavLink>
+                        </Link>
                     ) : (
-                        <NavLink to="/dashboard" className="account-nav__link">
+                        <Link href="/dashboard" className={`account-nav__link ${isActive('/dashboard') ? 'active' : ''}`}>
                             <span className="account-nav__text">Услуги и заявки</span>
-                        </NavLink>
+                        </Link>
                     )}
-                    <Link to="/" className="account-nav__link account-nav__link--ghost">
+                    <Link href="/" className="account-nav__link account-nav__link--ghost">
                         <span className="account-nav__text">На главную</span>
                     </Link>
                 </nav>
                 <div className="account-quick" aria-label="Быстрый доступ">
-                    <NavLink
-                        to={isAdmin ? '/admin' : '/dashboard'}
+                    <Link
+                        href={isAdmin ? '/admin' : '/dashboard'}
                         className="account-quick-card"
                     >
                         <span className="account-quick-card__label">
@@ -190,13 +192,13 @@ export default function Account() {
                         <span className="account-quick-card__go" aria-hidden="true">
                             Перейти
                         </span>
-                    </NavLink>
+                    </Link>
                 </div>
             </aside>
 
             <div className="account-main animate-in" style={{ animationDelay: '0.08s' }}>
                 <nav className="account-breadcrumb" aria-label="Навигация">
-                    <Link to="/">Главная</Link>
+                    <Link href="/">Главная</Link>
                     <span className="account-breadcrumb__sep" aria-hidden="true">
                         /
                     </span>
@@ -348,3 +350,4 @@ export default function Account() {
         </div>
     );
 }
+

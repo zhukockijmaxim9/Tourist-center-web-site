@@ -49,14 +49,14 @@ $navbar-h: 70px;
 }
 
 .hero__photo--light {
-    background-image: url("/public/images/hero.png"), url("/images/hero.png");
+    background-image: url("/images/hero.png");
     background-position: center 35%;
     filter: saturate(1.05) contrast(1.05);
     opacity: 1;
 }
 
 .hero__photo--dark {
-    background-image: url("/public/images/hero-dark.png"), url("/images/hero-dark.png");
+    background-image: url("/images/hero-dark.png");
     background-position: center 32%;
     filter: saturate(1.06) contrast(1.06) brightness(0.97);
 }

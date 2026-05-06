@@ -21,6 +21,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', fn () => Inertia::render('UserDashboard'))->name('dashboard');
 });
 
+Route::middleware(['auth', 'staff'])->group(function () {
+    Route::get('/manager', fn () => Inertia::render('ManagerDashboard'))->name('manager.dashboard');
+});
+
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin', fn () => Inertia::render('AdminDashboard'))->name('admin.dashboard');
 });

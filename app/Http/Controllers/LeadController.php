@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class LeadController extends Controller
 {
@@ -30,14 +31,18 @@ class LeadController extends Controller
             $now = Carbon::now();
 
             $leads->transform(function (Lead $lead) use ($user, $now) {
-                $lockActive = $lead->locked_by_user_id && $lead->lock_expires_at && $now->lt($lead->lock_expires_at);
-                $canViewPhone = $user->isSuperAdmin() || ($lockActive && (int) $lead->locked_by_user_id === (int) $user->id);
+                return $this->hidePhoneUntilClaimed($lead, $user, $now);
+            });
+        } elseif ($user?->isManager()) {
+            $leads = Lead::with(['user', 'service', 'leadStatus', 'assignedTo', 'lockedBy'])
+                ->where('assigned_to_user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-                if (!$canViewPhone) {
-                    $lead->phone = null;
-                }
+            $now = Carbon::now();
 
-                return $lead;
+            $leads->transform(function (Lead $lead) use ($user, $now) {
+                return $this->hidePhoneUntilClaimed($lead, $user, $now);
             });
         } else {
             $leads = Lead::with(['service', 'leadStatus'])
@@ -75,14 +80,9 @@ class LeadController extends Controller
         /** @var User|null $user */
         $user = Auth::user();
 
-        if ($user?->isAdmin()) {
+        if ($user?->isStaff()) {
             $now = Carbon::now();
-            $lockActive = $lead->locked_by_user_id && $lead->lock_expires_at && $now->lt($lead->lock_expires_at);
-            $canViewPhone = $user->isSuperAdmin() || ($lockActive && (int) $lead->locked_by_user_id === (int) $user->id);
-
-            if (!$canViewPhone) {
-                $lead->phone = null;
-            }
+            $lead = $this->hidePhoneUntilClaimed($lead, $user, $now);
         }
 
         return response()->json($lead);
@@ -91,6 +91,12 @@ class LeadController extends Controller
     public function update(UpdateLeadRequest $request, Lead $lead)
     {
         $validated = $request->validated();
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if ($user?->isManager()) {
+            $validated = array_intersect_key($validated, array_flip(['lead_status_id', 'status']));
+        }
 
         $lead->update($validated);
 
@@ -99,6 +105,13 @@ class LeadController extends Controller
 
     public function destroy(AuthorizeLeadActionRequest $request, Lead $lead)
     {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if ($user?->isManager()) {
+            return response()->json(['message' => 'Менеджер не может удалять заявки'], 403);
+        }
+
         $lead->delete();
         return response()->json(['message' => 'Заявка удалена']);
     }
@@ -118,6 +131,13 @@ class LeadController extends Controller
 
     public function getNotes(Lead $lead)
     {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if (!$user || !$this->canWorkWithLead($user, $lead)) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
         return response()->json($lead->notes()->with('user')->get());
     }
 
@@ -126,7 +146,7 @@ class LeadController extends Controller
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user || !$user->isAdmin()) {
+        if (!$user || !$this->canWorkWithLead($user, $lead)) {
             return response()->json(['message' => 'Доступ запрещён'], 403);
         }
 
@@ -147,12 +167,6 @@ class LeadController extends Controller
             $fresh->locked_by_user_id = $user->id;
             $fresh->locked_at = $now;
             $fresh->lock_expires_at = $now->copy()->addMinutes($ttlMinutes);
-
-            if (!$fresh->assigned_to_user_id || (int) $fresh->assigned_to_user_id !== (int) $user->id) {
-                $fresh->assigned_to_user_id = $user->id;
-                $fresh->assigned_by_user_id = $user->id;
-                $fresh->assigned_at = $now;
-            }
 
             if ($fresh->status === 'new') {
                 $fresh->status = 'in_progress';
@@ -181,7 +195,7 @@ class LeadController extends Controller
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user || !$user->isAdmin()) {
+        if (!$user || !$this->canWorkWithLead($user, $lead)) {
             return response()->json(['message' => 'Доступ запрещён'], 403);
         }
 
@@ -194,7 +208,7 @@ class LeadController extends Controller
             $lockActive = $fresh->locked_by_user_id && $fresh->lock_expires_at && $now->lt($fresh->lock_expires_at);
             $isLocker = $lockActive && (int) $fresh->locked_by_user_id === (int) $user->id;
 
-            if ($user->isSuperAdmin() || $isLocker) {
+            if ($user->isAdmin() || $isLocker) {
                 $fresh->locked_by_user_id = null;
                 $fresh->locked_at = null;
                 $fresh->lock_expires_at = null;
@@ -214,15 +228,21 @@ class LeadController extends Controller
         }
 
         $data = $request->validate([
-            'assigned_to_user_id' => 'nullable|exists:users,id',
+            'assigned_to_user_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where(fn ($query) => $query
+                    ->where('role', 'manager')
+                    ->where('status', 'active')),
+            ],
         ]);
 
         $now = Carbon::now();
+        $managerId = $data['assigned_to_user_id'] ?? null;
 
         $lead->update([
-            'assigned_to_user_id' => $data['assigned_to_user_id'] ?? null,
-            'assigned_by_user_id' => $user->id,
-            'assigned_at' => $now,
+            'assigned_to_user_id' => $managerId,
+            'assigned_by_user_id' => $managerId ? $user->id : null,
+            'assigned_at' => $managerId ? $now : null,
         ]);
 
         return response()->json($lead->load(['user', 'service', 'leadStatus', 'assignedTo', 'lockedBy']));
@@ -232,7 +252,7 @@ class LeadController extends Controller
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user || !$user->isAdmin()) {
+        if (!$user || !$this->canWorkWithLead($user, $lead)) {
             return response()->json(['message' => 'Доступ запрещён'], 403);
         }
 
@@ -243,7 +263,7 @@ class LeadController extends Controller
             $fresh = Lead::query()->lockForUpdate()->findOrFail($lead->id);
 
             $lockActive = $fresh->locked_by_user_id && $fresh->lock_expires_at && $now->lt($fresh->lock_expires_at);
-            $canAct = $user->isSuperAdmin() || ($lockActive && (int) $fresh->locked_by_user_id === (int) $user->id);
+            $canAct = $user->isAdmin() || ($lockActive && (int) $fresh->locked_by_user_id === (int) $user->id);
 
             if (!$canAct) {
                 return ['ok' => false, 'lead' => $fresh];
@@ -267,5 +287,26 @@ class LeadController extends Controller
         }
 
         return response()->json($result['lead']->load(['user', 'service', 'leadStatus', 'assignedTo', 'lockedBy']));
+    }
+
+    private function canWorkWithLead(User $user, Lead $lead): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $user->isManager() && (int) $lead->assigned_to_user_id === (int) $user->id;
+    }
+
+    private function hidePhoneUntilClaimed(Lead $lead, User $user, Carbon $now): Lead
+    {
+        $lockActive = $lead->locked_by_user_id && $lead->lock_expires_at && $now->lt($lead->lock_expires_at);
+        $canViewPhone = $lockActive && (int) $lead->locked_by_user_id === (int) $user->id;
+
+        if (!$canViewPhone) {
+            $lead->phone = null;
+        }
+
+        return $lead;
     }
 }

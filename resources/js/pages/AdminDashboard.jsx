@@ -31,6 +31,18 @@ const LEAD_STATUS_COLORS = {
     cancelled: 'danger',
 };
 
+const ROLE_LABELS = {
+    user: 'Пользователь',
+    manager: 'Менеджер',
+    admin: 'Админ',
+};
+
+const ROLE_BADGES = {
+    user: 'primary',
+    manager: 'success',
+    admin: 'warning',
+};
+
 export default function AdminDashboard() {
     const notify = useNotify();
     const [tab, setTab] = useState('users');
@@ -85,8 +97,8 @@ export default function AdminDashboard() {
             key: 'role',
             label: 'Роль',
             render: (val) => (
-                <span className={`badge badge-${val === 'super_admin' ? 'danger' : val === 'admin' ? 'warning' : 'primary'}`}>
-                    {val}
+                <span className={`badge badge-${ROLE_BADGES[val] || 'muted'}`}>
+                    {ROLE_LABELS[val] || val}
                 </span>
             ),
         },
@@ -410,6 +422,18 @@ export default function AdminDashboard() {
         }
     };
 
+    const assignLead = async (lead, managerId) => {
+        try {
+            const res = await leadsApi.assign(lead.id, {
+                assigned_to_user_id: managerId ? Number(managerId) : null,
+            });
+            const updatedLead = res.data;
+            setLeads((current) => current.map((x) => (x.id === lead.id ? { ...x, ...updatedLead } : x)));
+        } catch (err) {
+            notify.fromError(err, 'Не удалось назначить менеджера');
+        }
+    };
+
     const deleteLead = async (l) => {
         setConfirmModal({
             isOpen: true,
@@ -437,8 +461,10 @@ export default function AdminDashboard() {
     const usersFiltered = users.filter((u) => {
         const s = q('users');
         if (!s) return true;
-        return `${u.name || ''} ${u.email || ''} ${u.phone || ''}`.toLowerCase().includes(s);
+        return `${u.name || ''} ${u.email || ''} ${u.phone || ''} ${ROLE_LABELS[u.role] || u.role || ''}`.toLowerCase().includes(s);
     });
+
+    const managers = users.filter((u) => u.role === 'manager' && u.status === 'active');
 
     const servicesFiltered = services.filter((s) => {
         const needle = q('services');
@@ -680,6 +706,10 @@ export default function AdminDashboard() {
                                                 <span className="lead-info-value">{lead.user?.name || 'Гость'}</span>
                                             </div>
                                             <div className="lead-info-item">
+                                                <span className="lead-info-label">Менеджер</span>
+                                                <span className="lead-info-value">{lead.assigned_to?.name || 'Не назначен'}</span>
+                                            </div>
+                                            <div className="lead-info-item">
                                                 <span className="lead-info-label">Дата</span>
                                                 <span className="lead-info-value">{new Date(lead.created_at).toLocaleDateString('ru-RU')}</span>
                                             </div>
@@ -693,6 +723,16 @@ export default function AdminDashboard() {
                                         >
                                             {LEAD_STATUSES.map((s) => (
                                                 <option key={s} value={s}>{LEAD_STATUS_LABELS[s]}</option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            className="lead-status-select"
+                                            value={lead.assigned_to_user_id || ''}
+                                            onChange={(e) => assignLead(lead, e.target.value)}
+                                        >
+                                            <option value="">Не назначен</option>
+                                            {managers.map((manager) => (
+                                                <option key={manager.id} value={manager.id}>{manager.name}</option>
                                             ))}
                                         </select>
                                         <div className="lead-action-buttons">
@@ -749,9 +789,9 @@ export default function AdminDashboard() {
                             <div className="form-group">
                                 <label>Роль</label>
                                 <select value={form.role || 'user'} onChange={(e) => update('role', e.target.value)}>
-                                    <option value="user">user</option>
-                                    <option value="admin">admin</option>
-                                    <option value="super_admin">super_admin</option>
+                                    <option value="user">Пользователь</option>
+                                    <option value="manager">Менеджер</option>
+                                    <option value="admin">Админ</option>
                                 </select>
                             </div>
                             <div className="form-group">

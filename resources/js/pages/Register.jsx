@@ -15,7 +15,7 @@ export default function Register() {
         setLoading(true);
         try {
             const user = await register(form);
-            router.visit(user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/dashboard');
+            router.visit(user.role === 'admin' ? '/admin' : user.role === 'manager' ? '/manager' : '/dashboard');
         } catch (err) {
             const msg = err.response?.data?.message || err.response?.data?.errors;
             if (typeof msg === 'object') {

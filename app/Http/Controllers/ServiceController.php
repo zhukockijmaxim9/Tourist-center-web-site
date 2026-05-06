@@ -41,7 +41,7 @@ class ServiceController extends Controller
         $data['can_review'] = false;
         $data['has_reviewed'] = false;
 
-        if (Auth::check() && !Auth::user()->isAdmin()) {
+        if (Auth::check() && Auth::user()->role === 'user') {
             $userId = Auth::id();
 
             // User must have at least one completed lead for this service

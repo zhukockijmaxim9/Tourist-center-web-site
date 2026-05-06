@@ -18,11 +18,22 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo(function (Request $request) {
-            return $request->user()?->isAdmin() ? '/admin' : '/dashboard';
+            $user = $request->user();
+
+            if ($user?->isAdmin()) {
+                return '/admin';
+            }
+
+            if ($user?->isManager()) {
+                return '/manager';
+            }
+
+            return '/dashboard';
         });
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'staff' => \App\Http\Middleware\StaffMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

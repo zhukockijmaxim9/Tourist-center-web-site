@@ -15,7 +15,7 @@ export default function Login() {
         setLoading(true);
         try {
             const user = await login(form.email, form.password);
-            router.visit(user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/dashboard');
+            router.visit(user.role === 'admin' ? '/admin' : user.role === 'manager' ? '/manager' : '/dashboard');
         } catch (err) {
             setError(getErrorMessage(err, 'Ошибка входа'));
         } finally {

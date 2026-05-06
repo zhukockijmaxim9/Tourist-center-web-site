@@ -7,6 +7,15 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\ReviewController;
 
+Route::middleware(['auth', 'staff'])->group(function () {
+    // Lead work for admins and assigned managers
+    Route::post('/leads/{lead}/notes', [LeadController::class, 'addNote']);
+    Route::get('/leads/{lead}/notes', [LeadController::class, 'getNotes']);
+    Route::post('/leads/{lead}/claim', [LeadController::class, 'claim']);
+    Route::post('/leads/{lead}/release', [LeadController::class, 'release']);
+    Route::post('/leads/{lead}/confirm', [LeadController::class, 'confirm']);
+});
+
 Route::middleware(['auth', 'admin'])->group(function () {
     // Services Management
     Route::post('/services', [ServiceController::class, 'store']);
@@ -25,13 +34,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
 
-    // Lead Management & Notes
-    Route::post('/leads/{lead}/notes', [LeadController::class, 'addNote']);
-    Route::get('/leads/{lead}/notes', [LeadController::class, 'getNotes']);
-    Route::post('/leads/{lead}/claim', [LeadController::class, 'claim']);
-    Route::post('/leads/{lead}/release', [LeadController::class, 'release']);
+    // Lead assignment
     Route::put('/leads/{lead}/assign', [LeadController::class, 'assign']);
-    Route::post('/leads/{lead}/confirm', [LeadController::class, 'confirm']);
 
     // Review Moderation
     Route::get('/reviews', [ReviewController::class, 'index']);

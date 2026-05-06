@@ -18,6 +18,7 @@ class DemoDataSeeder extends Seeder
 {
     private const CORE_USER_EMAILS = [
         'admin@tourist.com',
+        'manager@tourist.com',
         'test@example.com',
     ];
 

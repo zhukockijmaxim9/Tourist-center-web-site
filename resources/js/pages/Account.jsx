@@ -7,14 +7,14 @@ import { isDisplayableAvatarUrl, clampAvatarStyle, AVATAR_GRADIENTS } from '../u
 const AVATAR_PRESETS = AVATAR_GRADIENTS.map((_, i) => i);
 
 function roleLabel(role) {
-    if (role === 'super_admin') return 'Суперадминистратор';
     if (role === 'admin') return 'Администратор';
+    if (role === 'manager') return 'Менеджер';
     return 'Клиент';
 }
 
 function roleHint(role) {
-    if (role === 'super_admin') return 'Полный доступ к системе и пользователям.';
     if (role === 'admin') return 'Управление заявками, услугами и каталогом.';
+    if (role === 'manager') return 'Работа с заявками, которые назначил администратор.';
     return 'Бронирование услуг и отслеживание ваших заявок.';
 }
 
@@ -30,7 +30,9 @@ export default function Account() {
     const [error, setError] = useState('');
     const [stats, setStats] = useState({ leads: null, users: null, servicesHint: null });
 
-    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+    const isAdmin = user?.role === 'admin';
+    const isManager = user?.role === 'manager';
+    const workPage = isAdmin ? '/admin' : isManager ? '/manager' : '/dashboard';
     const isActive = (path) => url === path || url.startsWith(`${path}?`);
 
     useEffect(() => {
@@ -165,29 +167,25 @@ export default function Account() {
                     <Link href="/account" className={`account-nav__link ${isActive('/account') ? 'active' : ''}`}>
                         <span className="account-nav__text">Профиль</span>
                     </Link>
-                    {isAdmin ? (
-                        <Link href="/admin" className={`account-nav__link ${isActive('/admin') ? 'active' : ''}`}>
-                            <span className="account-nav__text">Панель управления</span>
-                        </Link>
-                    ) : (
-                        <Link href="/dashboard" className={`account-nav__link ${isActive('/dashboard') ? 'active' : ''}`}>
-                            <span className="account-nav__text">Услуги и заявки</span>
-                        </Link>
-                    )}
+                    <Link href={workPage} className={`account-nav__link ${isActive(workPage) ? 'active' : ''}`}>
+                        <span className="account-nav__text">
+                            {isAdmin ? 'Панель управления' : isManager ? 'Мои заявки' : 'Услуги и заявки'}
+                        </span>
+                    </Link>
                     <Link href="/" className="account-nav__link account-nav__link--ghost">
                         <span className="account-nav__text">На главную</span>
                     </Link>
                 </nav>
                 <div className="account-quick" aria-label="Быстрый доступ">
                     <Link
-                        href={isAdmin ? '/admin' : '/dashboard'}
+                        href={workPage}
                         className="account-quick-card"
                     >
                         <span className="account-quick-card__label">
-                            {isAdmin ? 'Администрирование' : 'Каталог и заявки'}
+                            {isAdmin ? 'Администрирование' : isManager ? 'Работа с заявками' : 'Каталог и заявки'}
                         </span>
                         <span className="account-quick-card__hint">
-                            {isAdmin ? 'Заявки, услуги, пользователи' : 'Выбрать услугу и оставить заявку'}
+                            {isAdmin ? 'Заявки, услуги, пользователи' : isManager ? 'Назначенные заявки клиентов' : 'Выбрать услугу и оставить заявку'}
                         </span>
                         <span className="account-quick-card__go" aria-hidden="true">
                             Перейти
@@ -223,7 +221,7 @@ export default function Account() {
                         <div className="account-stat-card">
                             <span className="account-stat-card__value">{stats.leads}</span>
                             <span className="account-stat-card__label">
-                                {isAdmin ? 'Заявок в системе' : 'Ваших заявок'}
+                                {isAdmin ? 'Заявок в системе' : isManager ? 'Назначенных заявок' : 'Ваших заявок'}
                             </span>
                         </div>
                     )}

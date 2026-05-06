@@ -11,7 +11,18 @@ class AddLeadNoteRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $lead = $this->route('lead');
+        $user = $this->user();
+
+        if (!$user || !$lead) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $user->isManager() && (int) $lead->assigned_to_user_id === (int) $user->id;
     }
 
     /**

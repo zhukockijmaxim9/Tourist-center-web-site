@@ -11,8 +11,7 @@ class StoreReviewRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Admins are not allowed to leave reviews
-        return !$this->user()->isAdmin();
+        return $this->user()?->role === 'user';
     }
 
     /**

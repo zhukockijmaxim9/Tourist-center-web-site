@@ -33,12 +33,17 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return in_array($this->role, ['admin', 'super_admin'], true);
+        return $this->role === 'admin';
     }
 
-    public function isSuperAdmin(): bool
+    public function isManager(): bool
     {
-        return $this->role === 'super_admin';
+        return $this->role === 'manager';
+    }
+
+    public function isStaff(): bool
+    {
+        return in_array($this->role, ['admin', 'manager'], true);
     }
 
     public function leads()

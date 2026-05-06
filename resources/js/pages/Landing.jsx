@@ -123,7 +123,7 @@ export default function Landing() {
                     </p>
                     <div className="hero-actions">
                         {user ? (
-                            <Link href={user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/dashboard'}
+                            <Link href={user.role === 'admin' ? '/admin' : user.role === 'manager' ? '/manager' : '/dashboard'}
                                 className="btn btn-lg btn--hero-wire"
                             >
                                 Перейти в личный кабинет
@@ -464,7 +464,7 @@ export default function Landing() {
                             </div>
                         </div>
 
-                        {user && user.role !== 'admin' && serviceDetails.can_review && (
+                        {user && user.role === 'user' && serviceDetails.can_review && (
                             <form onSubmit={handleReviewSubmit} className="review-form">
                                 <h5>Оставить отзыв</h5>
                                 <div className="form-group">
@@ -495,13 +495,13 @@ export default function Landing() {
                             </form>
                         )}
 
-                        {user && user.role !== 'admin' && serviceDetails.has_reviewed && (
+                        {user && user.role === 'user' && serviceDetails.has_reviewed && (
                             <div className="review-notice">
                                 <span>✅</span> Вы уже оставили отзыв на эту услугу. Спасибо!
                             </div>
                         )}
 
-                        {user && user.role !== 'admin' && !serviceDetails.can_review && !serviceDetails.has_reviewed && (
+                        {user && user.role === 'user' && !serviceDetails.can_review && !serviceDetails.has_reviewed && (
                             <div className="review-notice">
                                 <span>ℹ️</span> Оставить отзыв можно после выполнения заявки на эту услугу.
                             </div>

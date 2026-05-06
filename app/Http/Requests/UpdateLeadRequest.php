@@ -14,7 +14,15 @@ class UpdateLeadRequest extends FormRequest
         $lead = $this->route('lead');
         $user = $this->user();
 
-        return $user->isAdmin() || ($lead && $lead->user_id === $user->id);
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($lead && $user->isManager()) {
+            return (int) $lead->assigned_to_user_id === (int) $user->id;
+        }
+
+        return $lead && (int) $lead->user_id === (int) $user->id;
     }
 
     /**

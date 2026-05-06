@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { useAuth } from '../context/AuthContext';
-import { servicesApi, leadsApi, categoriesApi } from '../api';
+import { leadsApi } from '../api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import { getServicePhotoUrl, serviceImageOnError } from '../utils/serviceCardImage';
-import { useNotify, getErrorMessage } from '../context/NotifyContext';
+import { useAuth } from '../context/AuthContext';
+import { useNotify } from '../context/NotifyContext';
+import LeadFormModal from '../features/leads/LeadFormModal';
+import useLeadForm from '../features/leads/useLeadForm';
+import ServiceCardGrid from '../features/services/ServiceCardGrid';
+import ServiceCategoryFilter from '../features/services/ServiceCategoryFilter';
+import useServicesCatalog from '../features/services/useServicesCatalog';
 
 const LEAD_STATUS_RU = {
     new: 'Новая',
@@ -22,84 +26,48 @@ function scrollToSection(id) {
 export default function UserDashboard() {
     const { user } = useAuth();
     const notify = useNotify();
-    const [services, setServices] = useState([]);
-    const [categories, setCategories] = useState([]);
     const [leads, setLeads] = useState([]);
-    const [showModal, setShowModal] = useState(false);
-    const [editingLead, setEditingLead] = useState(null);
-    const [form, setForm] = useState({ name: '', email: '', phone: '', message: '', service_id: '' });
-    const [error, setError] = useState('');
     const [confirmModal, setConfirmModal] = useState({ isOpen: false });
-    const [selectedCategory, setSelectedCategory] = useState('all');
-    const [query, setQuery] = useState('');
-    const [onlyActive, setOnlyActive] = useState(true);
     const [leadStatusFilter, setLeadStatusFilter] = useState('all');
+    const {
+        services,
+        categories,
+        filteredServices,
+        selectedCategory,
+        setSelectedCategory,
+        query,
+        setQuery,
+        onlyActive,
+        setOnlyActive,
+        servicesShown,
+        servicesTotal,
+        selectedCategoryHeading,
+    } = useServicesCatalog({
+        enableSearch: true,
+        enableOnlyActive: true,
+        initialCategory: 'all',
+        initialOnlyActive: true,
+    });
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
+    const loadLeads = async () => {
         try {
-            const [sRes, lRes, cRes] = await Promise.all([
-                servicesApi.getAll(),
-                leadsApi.getAll(),
-                categoriesApi.getAll(),
-            ]);
-            setServices(sRes.data);
-            setLeads(lRes.data);
-            setCategories(cRes.data);
+            const res = await leadsApi.getAll();
+            setLeads(res.data);
         } catch (err) {
             notify.fromError(err, 'Ошибка загрузки данных');
         }
     };
 
-    const openCreate = (service) => {
-        setEditingLead(null);
-        setForm({
-            name: user.name || '',
-            email: user.email || '',
-            phone: user.phone || '',
-            message: '',
-            service_id: service?.id || (services.length > 0 ? services[0].id : ''),
-        });
-        setError('');
-        setShowModal(true);
-    };
+    useEffect(() => {
+        loadLeads();
+    }, []);
 
-    const openEdit = (lead) => {
-        setEditingLead(lead);
-        setForm({
-            name: lead.name,
-            email: lead.email || '',
-            phone: lead.phone,
-            message: lead.message || '',
-            service_id: lead.service_id || '',
-        });
-        setError('');
-        setShowModal(true);
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        try {
-            if (editingLead) {
-                await leadsApi.update(editingLead.id, form);
-            } else {
-                await leadsApi.create(form);
-            }
-            setShowModal(false);
-            loadData();
-        } catch (err) {
-            const msg = err.response?.data?.errors;
-            if (typeof msg === 'object') {
-                setError(Object.values(msg).flat().join('. '));
-            } else {
-                setError(getErrorMessage(err, 'Ошибка'));
-            }
-        }
-    };
+    const leadForm = useLeadForm({
+        services,
+        user,
+        allowEdit: true,
+        onSuccess: loadLeads,
+    });
 
     const handleDelete = async (lead) => {
         setConfirmModal({
@@ -111,40 +79,39 @@ export default function UserDashboard() {
             onConfirm: async () => {
                 await leadsApi.delete(lead.id);
                 setConfirmModal({ isOpen: false });
-                loadData();
+                await loadLeads();
             },
         });
     };
 
-    const update = (key, val) => setForm({ ...form, [key]: val });
-
-    const leadColumns = [
+    const leadColumns = useMemo(() => [
         { key: 'id', label: 'ID' },
         { key: 'name', label: 'Имя' },
         { key: 'phone', label: 'Телефон' },
         {
             key: 'service',
             label: 'Услуга',
-            render: (val) => val?.name || '—',
+            render: (value) => value?.name || '—',
         },
         {
             key: 'status',
             label: 'Статус',
-            render: (val) => (
-                <span className={`badge badge-${val === 'done' ? 'success' : val === 'cancelled' ? 'danger' : 'primary'}`}>
-                    {LEAD_STATUS_RU[val] || val}
+            render: (value) => (
+                <span className={`badge badge-${value === 'done' ? 'success' : value === 'cancelled' ? 'danger' : 'primary'}`}>
+                    {LEAD_STATUS_RU[value] || value}
                 </span>
             ),
         },
-        { key: 'created_at', label: 'Дата', render: (val) => new Date(val).toLocaleDateString('ru-RU') },
-    ];
+        {
+            key: 'created_at',
+            label: 'Дата',
+            render: (value) => new Date(value).toLocaleDateString('ru-RU'),
+        },
+    ], []);
 
-    const normalizedQuery = query.trim().toLowerCase();
-
-    const filteredLeads =
-        leadStatusFilter === 'all'
-            ? leads
-            : leads.filter((l) => l.status === leadStatusFilter);
+    const filteredLeads = leadStatusFilter === 'all'
+        ? leads
+        : leads.filter((lead) => lead.status === leadStatusFilter);
 
     const leadStatusLabels = [
         { id: 'all', label: 'Все' },
@@ -155,24 +122,13 @@ export default function UserDashboard() {
         { id: 'cancelled', label: LEAD_STATUS_RU.cancelled },
     ];
 
-    const leadFilterHeading =
-        leadStatusFilter === 'all'
-            ? 'Все заявки'
-            : leadStatusLabels.find((x) => x.id === leadStatusFilter)?.label ?? 'Заявки';
+    const leadFilterHeading = leadStatusFilter === 'all'
+        ? 'Все заявки'
+        : leadStatusLabels.find((item) => item.id === leadStatusFilter)?.label ?? 'Заявки';
 
-    const filteredServices = services
-        .filter((s) => (selectedCategory === 'all' ? true : s.category_id === Number(selectedCategory)))
-        .filter((s) => (onlyActive ? s.status === 'active' : true))
-        .filter((s) => {
-            if (!normalizedQuery) return true;
-            const name = (s.name || '').toLowerCase();
-            const desc = (s.description || '').toLowerCase();
-            const cat = (s.category?.name || '').toLowerCase();
-            return name.includes(normalizedQuery) || desc.includes(normalizedQuery) || cat.includes(normalizedQuery);
-        });
-
-    const servicesShown = filteredServices.length;
-    const servicesTotal = services.length;
+    const servicesEmptyMessage = servicesTotal === 0
+        ? 'Услуги пока не добавлены — загляните позже.'
+        : 'По выбранным фильтрам ничего не найдено.';
 
     return (
         <div className="dashboard dashboard--user">
@@ -212,9 +168,9 @@ export default function UserDashboard() {
                     onClick={() => scrollToSection('user-leads')}
                 >
                     Заявки
-                    {leads.length > 0 && (
+                    {leads.length > 0 ? (
                         <span className="user-dashboard-rail__count">{leads.length}</span>
-                    )}
+                    ) : null}
                 </button>
             </nav>
 
@@ -245,7 +201,7 @@ export default function UserDashboard() {
                             className={`services-filter__chip services-filter__chip--toggle ${
                                 onlyActive ? 'is-active' : ''
                             }`}
-                            onClick={() => setOnlyActive((v) => !v)}
+                            onClick={() => setOnlyActive((value) => !value)}
                             title="Показывать только доступные"
                         >
                             {onlyActive ? 'Доступные' : 'Все статусы'}
@@ -253,133 +209,33 @@ export default function UserDashboard() {
                     </div>
                 </div>
 
-                {servicesTotal > 0 && (
+                {servicesTotal > 0 ? (
                     <p className="user-dashboard-services-meta" role="status">
-                        Показано{' '}
-                        <strong>{servicesShown}</strong>
-                        {' из '}
-                        <strong>{servicesTotal}</strong>
+                        Показано <strong>{servicesShown}</strong> из <strong>{servicesTotal}</strong>
                         {onlyActive ? ' (только доступные)' : ''}
                     </p>
-                )}
+                ) : null}
 
-                {categories.length > 0 && (
-                    <div
-                        className="services-filter user-dashboard-services-filter"
-                        role="toolbar"
-                        aria-label="Категории услуг"
-                    >
-                        <div className="services-filter__track">
-                            <div className="services-filter__chips">
-                                <button
-                                    type="button"
-                                    className={`services-filter__chip ${selectedCategory === 'all' ? 'is-active' : ''}`}
-                                    onClick={() => setSelectedCategory('all')}
-                                    aria-pressed={selectedCategory === 'all'}
-                                >
-                                    Все
-                                </button>
-                                {categories.map((c) => (
-                                    <button
-                                        key={c.id}
-                                        type="button"
-                                        className={`services-filter__chip ${
-                                            String(selectedCategory) === String(c.id) ? 'is-active' : ''
-                                        }`}
-                                        onClick={() => setSelectedCategory(String(c.id))}
-                                        aria-pressed={String(selectedCategory) === String(c.id)}
-                                    >
-                                        {c.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <h3 className="services-filter__heading user-dashboard-services-filter__heading" aria-live="polite">
-                            {selectedCategory === 'all'
-                                ? 'Все категории'
-                                : categories.find((c) => String(c.id) === String(selectedCategory))?.name ??
-                                  'Категория'}
-                        </h3>
-                    </div>
-                )}
+                {categories.length > 0 ? (
+                    <ServiceCategoryFilter
+                        categories={categories}
+                        selectedCategory={selectedCategory}
+                        onChange={(value) => setSelectedCategory(String(value))}
+                        allLabel={{ value: 'all', label: 'Все' }}
+                        heading={selectedCategory === 'all' ? 'Все категории' : selectedCategoryHeading ?? 'Категория'}
+                        ariaLabel="Категории услуг"
+                        className="user-dashboard-services-filter"
+                        headingClassName="user-dashboard-services-filter__heading"
+                    />
+                ) : null}
 
-                <div className="services-grid services-grid--showcase">
-                    {filteredServices.map((s) => {
-                        const isActive = s.status === 'active';
-                        return (
-                            <article
-                                key={s.id}
-                                className={`service-showcase ${isActive ? '' : 'service-showcase--inactive-dash'}`}
-                                onClick={() => isActive && openCreate(s)}
-                                onKeyDown={(e) => {
-                                    if (!isActive) return;
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        openCreate(s);
-                                    }
-                                }}
-                                role={isActive ? 'button' : undefined}
-                                tabIndex={isActive ? 0 : undefined}
-                                aria-label={isActive ? `Оформить заявку: ${s.name}` : undefined}
-                            >
-                                <div className="service-showcase__media service-showcase__media--photo">
-                                    <img
-                                        className="service-showcase__photo"
-                                        src={getServicePhotoUrl(s)}
-                                        alt=""
-                                        loading="lazy"
-                                        onError={serviceImageOnError}
-                                    />
-                                    <span
-                                        className={`service-showcase__badge service-showcase__badge--overlay ${
-                                            isActive ? 'service-showcase__badge--on' : 'service-showcase__badge--off'
-                                        }`}
-                                    >
-                                        {isActive ? 'Доступно' : 'Недоступно'}
-                                    </span>
-                                    <span className="service-showcase__category">
-                                        {s.category?.name || 'Без категории'}
-                                    </span>
-                                </div>
-                                <h3 className="service-showcase__title">{s.name}</h3>
-                                <p className="service-showcase__desc">
-                                    {s.description || 'Описание скоро появится'}
-                                </p>
-                                <div className="service-showcase__bottom">
-                                    {s.price ? (
-                                        <p className="service-showcase__price">
-                                            {Number(s.price).toLocaleString('ru-RU')} ₽
-                                        </p>
-                                    ) : (
-                                        <p className="service-showcase__price service-showcase__price--muted">
-                                            Цена по запросу
-                                        </p>
-                                    )}
-                                    <div className="service-showcase__actions">
-                                        {isActive && (
-                                            <button
-                                                type="button"
-                                                className="btn btn-primary btn-sm btn--service-showcase"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openCreate(s);
-                                                }}
-                                            >
-                                                Заказать
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </article>
-                        );
-                    })}
-                    {services.length === 0 && (
-                        <p className="user-dashboard-placeholder">Услуги пока не добавлены — загляните позже.</p>
-                    )}
-                    {services.length > 0 && filteredServices.length === 0 && (
-                        <p className="user-dashboard-placeholder">По выбранным фильтрам ничего не найдено.</p>
-                    )}
-                </div>
+                <ServiceCardGrid
+                    services={filteredServices}
+                    emptyMessage={servicesEmptyMessage}
+                    onCardClick={leadForm.openCreate}
+                    onPrimaryAction={leadForm.openCreate}
+                    interactiveMode="book"
+                />
             </section>
 
             <section
@@ -394,41 +250,27 @@ export default function UserDashboard() {
                         <h2 className="user-dashboard-section-title" id="user-leads-heading">
                             Мои заявки
                         </h2>
-                        {leads.length > 0 && (
+                        {leads.length > 0 ? (
                             <p className="user-dashboard-leads-meta">Всего в списке: {leads.length}</p>
-                        )}
+                        ) : null}
                     </div>
-                    <button type="button" className="btn btn-primary user-dashboard-btn-new" onClick={() => openCreate()}>
+                    <button type="button" className="btn btn-primary user-dashboard-btn-new" onClick={() => leadForm.openCreate()}>
                         Новая заявка
                     </button>
                 </div>
 
-                {leads.length > 0 && (
-                    <div
-                        className="services-filter user-dashboard-leads-filter"
-                        role="toolbar"
-                        aria-label="Фильтр по статусу заявки"
-                    >
-                        <div className="services-filter__track">
-                            <div className="services-filter__chips">
-                                {leadStatusLabels.map(({ id, label }) => (
-                                    <button
-                                        key={id}
-                                        type="button"
-                                        className={`services-filter__chip ${leadStatusFilter === id ? 'is-active' : ''}`}
-                                        onClick={() => setLeadStatusFilter(id)}
-                                        aria-pressed={leadStatusFilter === id}
-                                    >
-                                        {label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <h3 className="services-filter__heading user-dashboard-leads-filter__heading" aria-live="polite">
-                            {leadFilterHeading}
-                        </h3>
-                    </div>
-                )}
+                {leads.length > 0 ? (
+                    <ServiceCategoryFilter
+                        categories={leadStatusLabels}
+                        selectedCategory={leadStatusFilter}
+                        onChange={setLeadStatusFilter}
+                        allLabel={{ value: 'all', label: 'Все' }}
+                        heading={leadFilterHeading}
+                        ariaLabel="Фильтр по статусу заявки"
+                        className="user-dashboard-leads-filter"
+                        headingClassName="user-dashboard-leads-filter__heading"
+                    />
+                ) : null}
 
                 {leads.length === 0 ? (
                     <div className="user-dashboard-empty-leads">
@@ -436,7 +278,7 @@ export default function UserDashboard() {
                         <p className="user-dashboard-empty-leads__text">
                             Выберите услугу выше и оформите заявку — мы свяжемся с вами по указанным контактам.
                         </p>
-                        <button type="button" className="btn btn-primary" onClick={() => openCreate()}>
+                        <button type="button" className="btn btn-primary" onClick={() => leadForm.openCreate()}>
                             Создать заявку
                         </button>
                     </div>
@@ -450,7 +292,7 @@ export default function UserDashboard() {
                             <DataTable
                                 columns={leadColumns}
                                 data={filteredLeads}
-                                onEdit={openEdit}
+                                onEdit={leadForm.openEdit}
                                 onDelete={handleDelete}
                             />
                         )}
@@ -458,47 +300,21 @@ export default function UserDashboard() {
                 )}
             </section>
 
-            {/* Modal */}
-            <Modal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                title={editingLead ? 'Редактировать заявку' : 'Новая заявка'}
-                contentClassName="modal-content--elva"
-            >
-                {error && <div className="alert alert-error">{error}</div>}
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label>Имя</label>
-                        <input value={form.name} onChange={(e) => update('name', e.target.value)} required />
-                    </div>
-                    <div className="form-group">
-                        <label>Email</label>
-                        <input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} required />
-                    </div>
-                    <div className="form-group">
-                        <label>Телефон</label>
-                        <input value={form.phone} onChange={(e) => update('phone', e.target.value)} required />
-                    </div>
-                    <div className="form-group">
-                        <label>Услуга</label>
-                        <select value={form.service_id} onChange={(e) => update('service_id', e.target.value)} required>
-                            <option value="">Выберите услугу</option>
-                            {services.map((s) => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="form-group">
-                        <label>Сообщение</label>
-                        <textarea value={form.message} onChange={(e) => update('message', e.target.value)} rows={3} />
-                    </div>
-                    <button type="submit" className="btn btn-primary btn-block">
-                        {editingLead ? 'Сохранить' : 'Отправить'}
-                    </button>
-                </form>
-            </Modal>
+            <LeadFormModal
+                isOpen={leadForm.isOpen}
+                mode={leadForm.mode}
+                services={services}
+                initialUser={user}
+                initialLead={leadForm.initialLead}
+                onSubmitSuccess={loadLeads}
+                onClose={leadForm.close}
+                form={leadForm.form}
+                error={leadForm.error}
+                success={leadForm.success}
+                onChange={leadForm.updateField}
+                onSubmit={leadForm.submit}
+            />
 
-            {/* Confirm Modal */}
             <Modal
                 isOpen={!!confirmModal.isOpen}
                 onClose={() => setConfirmModal({ isOpen: false })}
@@ -528,4 +344,3 @@ export default function UserDashboard() {
         </div>
     );
 }
-

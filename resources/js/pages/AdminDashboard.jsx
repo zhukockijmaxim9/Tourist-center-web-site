@@ -1,57 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { usersApi, servicesApi, leadsApi, categoriesApi, reviewsApi } from '../api';
-import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
+import { ROLE_BADGES, ROLE_LABELS } from '../constants/roles';
+import { LEAD_STATUS_LABELS } from '../constants/leadStatus';
+import AdminCategoriesTab from '../features/admin/AdminCategoriesTab';
+import AdminLeadsTab from '../features/admin/AdminLeadsTab';
+import AdminReviewsTab from '../features/admin/AdminReviewsTab';
+import AdminServicesTab from '../features/admin/AdminServicesTab';
+import AdminUsersTab from '../features/admin/AdminUsersTab';
+import LeadContactModal from '../features/leads/LeadContactModal';
+import LeadEditModal from '../features/leads/LeadEditModal';
+import useLeadWorkflow from '../features/leads/useLeadWorkflow';
 import { useNotify, getErrorMessage } from '../context/NotifyContext';
 
 const TABS = [
     { key: 'users', label: '👥 Пользователи' },
-    { key: 'services', label: '🌍 Услуги' },
-    { key: 'categories', label: '📁 Категории' },
+    { key: 'services', label: '🌌 Услуги' },
+    { key: 'categories', label: '📃 Категории' },
     { key: 'leads', label: '📋 Заявки' },
     { key: 'reviews', label: '⭐ Отзывы' },
 ];
-
-const LEAD_STATUS_LABELS = {
-    new: 'Новая',
-    in_progress: 'В работе',
-    confirmed: 'Подтверждена',
-    done: 'Выполнено',
-    cancelled: 'Отменено',
-};
-
-const LEAD_STATUSES = ['new', 'in_progress', 'confirmed', 'done', 'cancelled'];
-
-const LEAD_STATUS_COLORS = {
-    new: 'primary',
-    in_progress: 'warning',
-    confirmed: 'purple',
-    done: 'success',
-    cancelled: 'danger',
-};
-
-const ROLE_LABELS = {
-    user: 'Пользователь',
-    manager: 'Менеджер',
-    admin: 'Админ',
-};
-
-const ROLE_BADGES = {
-    user: 'primary',
-    manager: 'success',
-    admin: 'warning',
-};
 
 export default function AdminDashboard() {
     const notify = useNotify();
     const [tab, setTab] = useState('users');
     const [users, setUsers] = useState([]);
     const [services, setServices] = useState([]);
-    const [leads, setLeads] = useState([]);
     const [categories, setCategories] = useState([]);
     const [reviews, setReviews] = useState([]);
-    const [leadNotes, setLeadNotes] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState({});
@@ -59,34 +36,54 @@ export default function AdminDashboard() {
     const [leadStatusFilter, setLeadStatusFilter] = useState('all');
     const [confirmModal, setConfirmModal] = useState({ isOpen: false });
     const [query, setQuery] = useState({ users: '', services: '', categories: '', leads: '', reviews: '' });
-    const [leadContactModal, setLeadContactModal] = useState({ isOpen: false, lead: null });
     const [reviewSort, setReviewSort] = useState('best');
+    const {
+        leads,
+        setLeads,
+        leadNotes,
+        editingLead,
+        editForm,
+        editError,
+        leadContactModal,
+        setEditForm,
+        reloadLeads,
+        openLeadEdit,
+        closeLeadEdit,
+        updateLeadStatus,
+        saveEditedLead,
+        addLeadNote,
+        openLeadContact,
+        closeLeadContact,
+        actLead,
+        confirmLead,
+    } = useLeadWorkflow();
 
-    useEffect(() => { loadAll(); }, []);
+    useEffect(() => {
+        loadAll();
+    }, []);
 
     const loadAll = async () => {
         try {
-            const [u, s, l, c, r] = await Promise.all([
+            const [u, s, c, r] = await Promise.all([
                 usersApi.getAll(),
                 servicesApi.getAll(),
-                leadsApi.getAll(),
                 categoriesApi.getAll(),
                 reviewsApi.getAll(),
             ]);
+
             setUsers(u.data);
             setServices(s.data);
-            setLeads(l.data);
             setCategories(c.data);
             setReviews(r.data);
+            await reloadLeads();
         } catch (err) {
             notify.fromError(err, 'Ошибка загрузки данных');
         }
     };
 
-    const update = (key, val) => setForm({ ...form, [key]: val });
-
+    const updateFormField = (key, value) => setForm((current) => ({ ...current, [key]: value }));
     const q = (tabKey) => (query[tabKey] || '').trim().toLowerCase();
-    const setQ = (tabKey, value) => setQuery((prev) => ({ ...prev, [tabKey]: value }));
+    const setQ = (tabKey, value) => setQuery((current) => ({ ...current, [tabKey]: value }));
 
     const userColumns = [
         { key: 'id', label: 'ID' },
@@ -96,17 +93,44 @@ export default function AdminDashboard() {
         {
             key: 'role',
             label: 'Роль',
-            render: (val) => (
-                <span className={`badge badge-${ROLE_BADGES[val] || 'muted'}`}>
-                    {ROLE_LABELS[val] || val}
+            render: (value) => (
+                <span className={`badge badge-${ROLE_BADGES[value] || 'muted'}`}>
+                    {ROLE_LABELS[value] || value}
                 </span>
             ),
         },
         {
             key: 'status',
             label: 'Статус',
-            render: (val) => <span className={`badge badge-${val === 'active' ? 'success' : 'muted'}`}>{val}</span>,
+            render: (value) => <span className={`badge badge-${value === 'active' ? 'success' : 'muted'}`}>{value}</span>,
         },
+    ];
+
+    const serviceColumns = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Название' },
+        { key: 'category', label: 'Категория', render: (value) => value?.name || '—' },
+        { key: 'description', label: 'Описание', render: (value) => (value ? (value.length > 50 ? `${value.slice(0, 50)}…` : value) : '—') },
+        { key: 'price', label: 'Цена', render: (value) => (value ? `${Number(value).toLocaleString('ru-RU')} ₽` : '—') },
+        {
+            key: 'status',
+            label: 'Статус',
+            render: (value) => <span className={`badge badge-${value === 'active' ? 'success' : 'muted'}`}>{value}</span>,
+        },
+    ];
+
+    const categoryColumns = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Название' },
+        { key: 'description', label: 'Описание' },
+    ];
+
+    const reviewColumns = [
+        { key: 'id', label: 'ID' },
+        { key: 'service', label: 'Услуга', render: (value) => value?.name },
+        { key: 'user', label: 'Автор', render: (value) => value?.name },
+        { key: 'rating', label: 'Оценка', render: (value) => '⭐'.repeat(value) },
+        { key: 'comment', label: 'Комментарий' },
     ];
 
     const openUserCreate = () => {
@@ -116,9 +140,9 @@ export default function AdminDashboard() {
         setShowModal(true);
     };
 
-    const openUserEdit = (u) => {
-        setEditing(u);
-        setForm({ name: u.name, email: u.email, phone: u.phone || '', password: '', role: u.role, status: u.status });
+    const openUserEdit = (user) => {
+        setEditing(user);
+        setForm({ name: user.name, email: user.email, phone: user.phone || '', password: '', role: user.role, status: user.status });
         setError('');
         setShowModal(true);
     };
@@ -126,48 +150,38 @@ export default function AdminDashboard() {
     const submitUser = async (e) => {
         e.preventDefault();
         setError('');
+
         try {
             const data = { ...form };
             if (!data.password) delete data.password;
+
             if (editing) {
                 await usersApi.update(editing.id, data);
             } else {
                 await usersApi.create(data);
             }
+
             setShowModal(false);
-            loadAll();
+            await loadAll();
         } catch (err) {
             handleError(err);
         }
     };
 
-    const deleteUser = async (u) => {
+    const deleteUser = async (user) => {
         setConfirmModal({
             isOpen: true,
             title: 'Удалить пользователя?',
-            body: `Пользователь: ${u.name}`,
+            body: `Пользователь: ${user.name}`,
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await usersApi.delete(u.id);
+                await usersApi.delete(user.id);
                 setConfirmModal({ isOpen: false });
-                loadAll();
+                await loadAll();
             },
         });
     };
-
-    const serviceColumns = [
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: 'Название' },
-        { key: 'category', label: 'Категория', render: (v) => v?.name || '—' },
-        { key: 'description', label: 'Описание', render: (v) => v ? (v.length > 50 ? v.slice(0, 50) + '…' : v) : '—' },
-        { key: 'price', label: 'Цена', render: (v) => v ? `${Number(v).toLocaleString('ru-RU')} ₽` : '—' },
-        {
-            key: 'status',
-            label: 'Статус',
-            render: (val) => <span className={`badge badge-${val === 'active' ? 'success' : 'muted'}`}>{val}</span>,
-        },
-    ];
 
     const openServiceCreate = () => {
         setEditing(null);
@@ -176,9 +190,16 @@ export default function AdminDashboard() {
         setShowModal(true);
     };
 
-    const openServiceEdit = (s) => {
-        setEditing(s);
-        setForm({ name: s.name, description: s.description || '', price: s.price || '', image: s.image || '', status: s.status, category_id: s.category_id || '' });
+    const openServiceEdit = (service) => {
+        setEditing(service);
+        setForm({
+            name: service.name,
+            description: service.description || '',
+            price: service.price || '',
+            image: service.image || '',
+            status: service.status,
+            category_id: service.category_id || '',
+        });
         setError('');
         setShowModal(true);
     };
@@ -186,39 +207,35 @@ export default function AdminDashboard() {
     const submitService = async (e) => {
         e.preventDefault();
         setError('');
+
         try {
             if (editing) {
                 await servicesApi.update(editing.id, form);
             } else {
                 await servicesApi.create(form);
             }
+
             setShowModal(false);
-            loadAll();
+            await loadAll();
         } catch (err) {
             handleError(err);
         }
     };
 
-    const deleteService = async (s) => {
+    const deleteService = async (service) => {
         setConfirmModal({
             isOpen: true,
             title: 'Удалить услугу?',
-            body: `Услуга: "${s.name}"`,
+            body: `Услуга: "${service.name}"`,
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await servicesApi.delete(s.id);
+                await servicesApi.delete(service.id);
                 setConfirmModal({ isOpen: false });
-                loadAll();
+                await loadAll();
             },
         });
     };
-
-    const categoryColumns = [
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: 'Название' },
-        { key: 'description', label: 'Описание' },
-    ];
 
     const openCategoryCreate = () => {
         setEditing(null);
@@ -227,9 +244,9 @@ export default function AdminDashboard() {
         setShowModal(true);
     };
 
-    const openCategoryEdit = (c) => {
-        setEditing(c);
-        setForm({ name: c.name, description: c.description || '' });
+    const openCategoryEdit = (category) => {
+        setEditing(category);
+        setForm({ name: category.name, description: category.description || '' });
         setError('');
         setShowModal(true);
     };
@@ -237,43 +254,37 @@ export default function AdminDashboard() {
     const submitCategory = async (e) => {
         e.preventDefault();
         setError('');
+
         try {
             if (editing) {
                 await categoriesApi.update(editing.id, form);
             } else {
                 await categoriesApi.create(form);
             }
+
             setShowModal(false);
-            loadAll();
+            await loadAll();
         } catch (err) {
             handleError(err);
         }
     };
 
-    const deleteCategory = async (c) => {
+    const deleteCategory = async (category) => {
         setConfirmModal({
             isOpen: true,
             title: 'Удалить категорию?',
-            body: `Категория: "${c.name}". Это может отвязать услуги.`,
+            body: `Категория: "${category.name}". Это может отвязать услуги.`,
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await categoriesApi.delete(c.id);
+                await categoriesApi.delete(category.id);
                 setConfirmModal({ isOpen: false });
-                loadAll();
+                await loadAll();
             },
         });
     };
 
-    const reviewColumns = [
-        { key: 'id', label: 'ID' },
-        { key: 'service', label: 'Услуга', render: (v) => v?.name },
-        { key: 'user', label: 'Автор', render: (v) => v?.name },
-        { key: 'rating', label: 'Оценка', render: (v) => '⭐'.repeat(v) },
-        { key: 'comment', label: 'Комментарий' },
-    ];
-
-    const deleteReview = async (r) => {
+    const deleteReview = async (review) => {
         setConfirmModal({
             isOpen: true,
             title: 'Удалить отзыв?',
@@ -281,145 +292,11 @@ export default function AdminDashboard() {
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await reviewsApi.delete(r.id);
+                await reviewsApi.delete(review.id);
                 setConfirmModal({ isOpen: false });
-                loadAll();
+                await loadAll();
             },
         });
-    };
-
-    const filteredLeads = leadStatusFilter === 'all'
-        ? leads
-        : leads.filter((l) => l.status === leadStatusFilter);
-
-    const openLeadContact = async (lead) => {
-        try {
-            const res = await leadsApi.claim(lead.id);
-            const claimed = res.data;
-            setLeads((prev) => prev.map((x) => (x.id === claimed.id ? { ...x, ...claimed } : x)));
-            setLeadContactModal({ isOpen: true, lead: claimed });
-        } catch (err) {
-            notify.fromError(err, 'Не удалось взять заявку в работу');
-        }
-    };
-
-    const closeLeadContact = () => setLeadContactModal({ isOpen: false, lead: null });
-
-    const actLead = async (action) => {
-        const lead = leadContactModal.lead;
-        if (!lead) return;
-
-        try {
-            if (action === 'postpone') {
-                await leadsApi.release(lead.id);
-                notify.info('Заявка отложена');
-            }
-
-            if (action === 'reject') {
-                const res = await leadsApi.update(lead.id, { status: 'cancelled' });
-                await leadsApi.release(lead.id);
-                setLeads((prev) => prev.map((x) => (x.id === lead.id ? { ...x, ...res.data } : x)));
-                notify.success('Заявка отклонена');
-            }
-
-            if (action === 'done') {
-                const res = await leadsApi.update(lead.id, { status: 'done' });
-                await leadsApi.release(lead.id);
-                setLeads((prev) => prev.map((x) => (x.id === lead.id ? { ...x, ...res.data } : x)));
-                notify.success('Заявка отмечена как выполненная');
-            }
-
-            closeLeadContact();
-            loadAll();
-        } catch (err) {
-            notify.fromError(err, 'Не удалось обновить заявку');
-        }
-    };
-
-    const leadCountByStatus = (status) => leads.filter((l) => l.status === status).length;
-
-    const openLeadEdit = async (l) => {
-        setEditing(l);
-        setForm({
-            name: l.name,
-            email: l.email || '',
-            phone: l.phone,
-            message: l.message || '',
-            service_id: l.service_id || '',
-            status: l.status,
-            note: '',
-        });
-        setError('');
-        setShowModal(true);
-        try {
-            const res = await leadsApi.getNotes(l.id);
-            setLeadNotes(res.data);
-        } catch (err) {
-            console.error('Ошибка загрузки заметок:', err);
-            setLeadNotes([]);
-        }
-    };
-
-    const addLeadNote = async () => {
-        if (!form.note) return;
-        try {
-            await leadsApi.addNote(editing.id, { note: form.note });
-            setForm({ ...form, note: '' });
-            const res = await leadsApi.getNotes(editing.id);
-            setLeadNotes(res.data);
-        } catch (err) { handleError(err); }
-    };
-
-    const submitLead = async (e) => {
-        e.preventDefault();
-        setError('');
-        try {
-            await leadsApi.update(editing.id, form);
-            setShowModal(false);
-            loadAll();
-        } catch (err) {
-            handleError(err);
-        }
-    };
-
-    const updateLeadStatus = async (lead, status) => {
-        if (lead.status === status) return;
-
-        try {
-            const response = await leadsApi.update(lead.id, { status });
-            const updatedLead = response.data;
-
-            setLeads((currentLeads) => currentLeads.map((item) => (
-                item.id === lead.id ? { ...item, ...updatedLead } : item
-            )));
-
-            if (editing?.id === lead.id) {
-                setEditing((currentEditing) => currentEditing ? { ...currentEditing, ...updatedLead } : currentEditing);
-                setForm((currentForm) => ({ ...currentForm, status: updatedLead.status }));
-            }
-        } catch (err) {
-            notify.fromError(err, 'Не удалось обновить статус заявки');
-        }
-    };
-
-    const claimLead = async (lead) => {
-        try {
-            const res = await leadsApi.claim(lead.id);
-            const updatedLead = res.data;
-            setLeads((current) => current.map((x) => (x.id === lead.id ? { ...x, ...updatedLead } : x)));
-        } catch (err) {
-            notify.fromError(err, 'Не удалось взять заявку в работу');
-        }
-    };
-
-    const confirmLead = async (lead) => {
-        try {
-            const res = await leadsApi.confirm(lead.id);
-            const updatedLead = res.data;
-            setLeads((current) => current.map((x) => (x.id === lead.id ? { ...x, ...updatedLead } : x)));
-        } catch (err) {
-            notify.fromError(err, 'Не удалось подтвердить заявку');
-        }
     };
 
     const assignLead = async (lead, managerId) => {
@@ -428,77 +305,94 @@ export default function AdminDashboard() {
                 assigned_to_user_id: managerId ? Number(managerId) : null,
             });
             const updatedLead = res.data;
-            setLeads((current) => current.map((x) => (x.id === lead.id ? { ...x, ...updatedLead } : x)));
+            setLeads((current) => current.map((item) => (item.id === lead.id ? { ...item, ...updatedLead } : item)));
         } catch (err) {
             notify.fromError(err, 'Не удалось назначить менеджера');
         }
     };
 
-    const deleteLead = async (l) => {
+    const deleteLead = async (lead) => {
         setConfirmModal({
             isOpen: true,
             title: 'Удалить заявку?',
-            body: `Заявка от: ${l.name}`,
+            body: `Заявка от: ${lead.name}`,
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await leadsApi.delete(l.id);
+                await leadsApi.delete(lead.id);
                 setConfirmModal({ isOpen: false });
-                loadAll();
+                await reloadLeads();
             },
         });
     };
 
     const handleError = (err) => {
-        const msg = err.response?.data?.errors;
-        if (typeof msg === 'object') {
-            setError(Object.values(msg).flat().join('. '));
+        const message = err.response?.data?.errors;
+        if (typeof message === 'object') {
+            setError(Object.values(message).flat().join('. '));
         } else {
             setError(getErrorMessage(err, 'Ошибка'));
         }
     };
 
-    const usersFiltered = users.filter((u) => {
-        const s = q('users');
-        if (!s) return true;
-        return `${u.name || ''} ${u.email || ''} ${u.phone || ''} ${ROLE_LABELS[u.role] || u.role || ''}`.toLowerCase().includes(s);
+    const usersFiltered = users.filter((user) => {
+        const needle = q('users');
+        if (!needle) return true;
+        return `${user.name || ''} ${user.email || ''} ${user.phone || ''} ${ROLE_LABELS[user.role] || user.role || ''}`.toLowerCase().includes(needle);
     });
 
-    const managers = users.filter((u) => u.role === 'manager' && u.status === 'active');
+    const managers = users.filter((user) => user.role === 'manager' && user.status === 'active');
 
-    const servicesFiltered = services.filter((s) => {
+    const servicesFiltered = services.filter((service) => {
         const needle = q('services');
         if (!needle) return true;
-        return `${s.name || ''} ${s.description || ''} ${s.category?.name || ''}`.toLowerCase().includes(needle);
+        return `${service.name || ''} ${service.description || ''} ${service.category?.name || ''}`.toLowerCase().includes(needle);
     });
 
-    const categoriesFiltered = categories.filter((c) => {
+    const categoriesFiltered = categories.filter((category) => {
         const needle = q('categories');
         if (!needle) return true;
-        return `${c.name || ''} ${c.description || ''}`.toLowerCase().includes(needle);
+        return `${category.name || ''} ${category.description || ''}`.toLowerCase().includes(needle);
     });
 
-    const leadsFiltered = filteredLeads.filter((l) => {
+    const filteredLeads = leadStatusFilter === 'all'
+        ? leads
+        : leads.filter((lead) => lead.status === leadStatusFilter);
+
+    const leadsFiltered = filteredLeads.filter((lead) => {
         const needle = q('leads');
         if (!needle) return true;
-        const phone = l.phone || l.user?.phone || '';
-        return `${l.name || ''} ${l.email || ''} ${phone} ${l.service?.name || ''}`.toLowerCase().includes(needle);
+        const phone = lead.phone || lead.user?.phone || '';
+        return `${lead.name || ''} ${lead.email || ''} ${phone} ${lead.service?.name || ''}`.toLowerCase().includes(needle);
     });
 
-    const reviewsFiltered = reviews.filter((r) => {
+    const reviewsFiltered = reviews.filter((review) => {
         const needle = q('reviews');
         if (!needle) return true;
-        return `${r.comment || ''} ${r.service?.name || ''} ${r.user?.name || ''}`.toLowerCase().includes(needle);
+        return `${review.comment || ''} ${review.service?.name || ''} ${review.user?.name || ''}`.toLowerCase().includes(needle);
     });
 
     const reviewsSorted = [...reviewsFiltered].sort((a, b) => {
-        const ra = Number(a?.rating || 0);
-        const rb = Number(b?.rating || 0);
-        if (ra !== rb) return reviewSort === 'worst' ? ra - rb : rb - ra;
-        const da = a?.created_at ? Date.parse(a.created_at) : 0;
-        const db = b?.created_at ? Date.parse(b.created_at) : 0;
-        return db - da;
+        const ratingA = Number(a?.rating || 0);
+        const ratingB = Number(b?.rating || 0);
+        if (ratingA !== ratingB) return reviewSort === 'worst' ? ratingA - ratingB : ratingB - ratingA;
+        const dateA = a?.created_at ? Date.parse(a.created_at) : 0;
+        const dateB = b?.created_at ? Date.parse(b.created_at) : 0;
+        return dateB - dateA;
     });
+
+    const leadCountByStatus = (status) => leads.filter((lead) => lead.status === status).length;
+
+    const submitLead = async (e) => {
+        e.preventDefault();
+        await saveEditedLead((currentForm) => currentForm);
+    };
+
+    const activeStats = [
+        { label: 'Пользователей', value: users.length, icon: '👥' },
+        { label: 'Услуг', value: services.length, icon: '🌌' },
+        { label: 'Заявок', value: leads.length, icon: '📋' },
+    ];
 
     return (
         <div className="dashboard dashboard--admin">
@@ -515,251 +409,96 @@ export default function AdminDashboard() {
             </div>
 
             <div className="stats-grid animate-in" style={{ animationDelay: '0.1s' }}>
-                <div className="stats-card">
-                    <div className="stats-card-icon">👥</div>
-                    <div className="stats-card-info">
-                        <span className="stats-value">{users.length}</span>
-                        <span className="stats-label">Пользователей</span>
+                {activeStats.map((item) => (
+                    <div key={item.label} className="stats-card">
+                        <div className="stats-card-icon">{item.icon}</div>
+                        <div className="stats-card-info">
+                            <span className="stats-value">{item.value}</span>
+                            <span className="stats-label">{item.label}</span>
+                        </div>
                     </div>
-                </div>
-                <div className="stats-card">
-                    <div className="stats-card-icon">🌍</div>
-                    <div className="stats-card-info">
-                        <span className="stats-value">{services.length}</span>
-                        <span className="stats-label">Услуг</span>
-                    </div>
-                </div>
-                <div className="stats-card">
-                    <div className="stats-card-icon">📋</div>
-                    <div className="stats-card-info">
-                        <span className="stats-value">{leads.length}</span>
-                        <span className="stats-label">Заявок</span>
-                    </div>
-                </div>
+                ))}
             </div>
 
-            {/* Tabs */}
             <div className="tabs">
-                {TABS.map((t) => (
+                {TABS.map((item) => (
                     <button
-                        key={t.key}
-                        className={`tab ${tab === t.key ? 'tab-active' : ''}`}
-                        onClick={() => setTab(t.key)}
+                        key={item.key}
+                        className={`tab ${tab === item.key ? 'tab-active' : ''}`}
+                        onClick={() => setTab(item.key)}
                     >
-                        {t.label}
+                        {item.label}
                     </button>
                 ))}
             </div>
 
-            {/* Users Tab */}
             {tab === 'users' && (
-                <section className="dashboard-section">
-                    <div className="section-header">
-                        <div>
-                            <h2>Пользователи ({usersFiltered.length})</h2>
-                            <input
-                                className="input input-sm"
-                                placeholder="Поиск: имя, email, телефон…"
-                                value={query.users}
-                                onChange={(e) => setQ('users', e.target.value)}
-                                style={{ marginTop: '0.8rem', maxWidth: 420 }}
-                            />
-                        </div>
-                        <button className="btn btn-primary" onClick={openUserCreate}>+ Добавить</button>
-                    </div>
-                    <DataTable columns={userColumns} data={usersFiltered} onEdit={openUserEdit} onDelete={deleteUser} />
-                </section>
+                <AdminUsersTab
+                    users={usersFiltered}
+                    query={query.users}
+                    onQueryChange={(value) => setQ('users', value)}
+                    onCreate={openUserCreate}
+                    columns={userColumns}
+                    onEdit={openUserEdit}
+                    onDelete={deleteUser}
+                />
             )}
 
-            {/* Services Tab */}
             {tab === 'services' && (
-                <section className="dashboard-section">
-                    <div className="section-header">
-                        <div>
-                            <h2>Услуги ({servicesFiltered.length})</h2>
-                            <input
-                                className="input input-sm"
-                                placeholder="Поиск: название, категория, описание…"
-                                value={query.services}
-                                onChange={(e) => setQ('services', e.target.value)}
-                                style={{ marginTop: '0.8rem', maxWidth: 520 }}
-                            />
-                        </div>
-                        <button className="btn btn-primary" onClick={openServiceCreate}>+ Добавить</button>
-                    </div>
-                    <DataTable columns={serviceColumns} data={servicesFiltered} onEdit={openServiceEdit} onDelete={deleteService} />
-                </section>
+                <AdminServicesTab
+                    services={servicesFiltered}
+                    query={query.services}
+                    onQueryChange={(value) => setQ('services', value)}
+                    onCreate={openServiceCreate}
+                    columns={serviceColumns}
+                    onEdit={openServiceEdit}
+                    onDelete={deleteService}
+                />
             )}
 
-            {/* Categories Tab */}
             {tab === 'categories' && (
-                <section className="dashboard-section">
-                    <div className="section-header">
-                        <div>
-                            <h2>Категории ({categoriesFiltered.length})</h2>
-                            <input
-                                className="input input-sm"
-                                placeholder="Поиск: название, описание…"
-                                value={query.categories}
-                                onChange={(e) => setQ('categories', e.target.value)}
-                                style={{ marginTop: '0.8rem', maxWidth: 420 }}
-                            />
-                        </div>
-                        <button className="btn btn-primary" onClick={openCategoryCreate}>+ Добавить</button>
-                    </div>
-                    <DataTable columns={categoryColumns} data={categoriesFiltered} onEdit={openCategoryEdit} onDelete={deleteCategory} />
-                </section>
+                <AdminCategoriesTab
+                    categories={categoriesFiltered}
+                    query={query.categories}
+                    onQueryChange={(value) => setQ('categories', value)}
+                    onCreate={openCategoryCreate}
+                    columns={categoryColumns}
+                    onEdit={openCategoryEdit}
+                    onDelete={deleteCategory}
+                />
             )}
 
-            {/* Reviews Tab */}
             {tab === 'reviews' && (
-                <section className="dashboard-section">
-                    <div className="section-header">
-                        <div>
-                            <h2>Отзывы ({reviewsSorted.length})</h2>
-                            <input
-                                className="input input-sm"
-                                placeholder="Поиск: услуга, автор, текст…"
-                                value={query.reviews}
-                                onChange={(e) => setQ('reviews', e.target.value)}
-                                style={{ marginTop: '0.8rem', maxWidth: 520 }}
-                            />
-                            <div className="review-sort" style={{ marginTop: '0.8rem' }}>
-                                <button
-                                    type="button"
-                                    className={`review-sort__chip ${reviewSort === 'best' ? 'is-active' : ''}`}
-                                    onClick={() => setReviewSort('best')}
-                                    aria-pressed={reviewSort === 'best'}
-                                >
-                                    Лучшие
-                                </button>
-                                <button
-                                    type="button"
-                                    className={`review-sort__chip ${reviewSort === 'worst' ? 'is-active' : ''}`}
-                                    onClick={() => setReviewSort('worst')}
-                                    aria-pressed={reviewSort === 'worst'}
-                                >
-                                    Худшие
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <DataTable columns={reviewColumns} data={reviewsSorted} onDelete={deleteReview} />
-                </section>
+                <AdminReviewsTab
+                    reviews={reviewsSorted}
+                    query={query.reviews}
+                    onQueryChange={(value) => setQ('reviews', value)}
+                    sort={reviewSort}
+                    onSortChange={setReviewSort}
+                    columns={reviewColumns}
+                    onDelete={deleteReview}
+                />
             )}
 
-            {/* Leads Tab */}
             {tab === 'leads' && (
-                <section className="dashboard-section">
-                    <div className="section-header">
-                        <div>
-                            <h2>Заявки ({leadsFiltered.length})</h2>
-                            <input
-                                className="input input-sm"
-                                placeholder="Поиск: имя, email, телефон, услуга…"
-                                value={query.leads}
-                                onChange={(e) => setQ('leads', e.target.value)}
-                                style={{ marginTop: '0.8rem', maxWidth: 520 }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Status filter bar */}
-                    <div className="lead-filters">
-                        <button
-                            className={`lead-filter-btn ${leadStatusFilter === 'all' ? 'active' : ''}`}
-                            onClick={() => setLeadStatusFilter('all')}
-                        >
-                            Все <span className="lead-filter-count">{leads.length}</span>
-                        </button>
-                        {LEAD_STATUSES.map((s) => (
-                            <button
-                                key={s}
-                                className={`lead-filter-btn lead-filter-${LEAD_STATUS_COLORS[s]} ${leadStatusFilter === s ? 'active' : ''}`}
-                                onClick={() => setLeadStatusFilter(s)}
-                            >
-                                {LEAD_STATUS_LABELS[s]} <span className="lead-filter-count">{leadCountByStatus(s)}</span>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Leads list */}
-                    {leadsFiltered.length === 0 ? (
-                        <div className="empty-state">Нет заявок</div>
-                    ) : (
-                        <div className="leads-list">
-                            {leadsFiltered.map((lead) => (
-                                <div key={lead.id} className="lead-row">
-                                    <div className="lead-row-main">
-                                        <div className="lead-contact">
-                                            <span className="lead-contact-name">{lead.name}</span>
-                                            <span className="lead-contact-detail">{lead.email}</span>
-                                            <span className="lead-contact-detail">{lead.phone || lead.user?.phone || 'Телефон скрыт'}</span>
-                                        </div>
-                                        <div className="lead-info">
-                                            <div className="lead-info-item">
-                                                <span className="lead-info-label">Услуга</span>
-                                                <span className="lead-info-value">{lead.service?.name || '—'}</span>
-                                            </div>
-                                            <div className="lead-info-item">
-                                                <span className="lead-info-label">Клиент</span>
-                                                <span className="lead-info-value">{lead.user?.name || 'Гость'}</span>
-                                            </div>
-                                            <div className="lead-info-item">
-                                                <span className="lead-info-label">Менеджер</span>
-                                                <span className="lead-info-value">{lead.assigned_to?.name || 'Не назначен'}</span>
-                                            </div>
-                                            <div className="lead-info-item">
-                                                <span className="lead-info-label">Дата</span>
-                                                <span className="lead-info-value">{new Date(lead.created_at).toLocaleDateString('ru-RU')}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="lead-row-actions">
-                                        <select
-                                            className={`lead-status-select lead-status-${LEAD_STATUS_COLORS[lead.status]}`}
-                                            value={lead.status}
-                                            onChange={(e) => updateLeadStatus(lead, e.target.value)}
-                                        >
-                                            {LEAD_STATUSES.map((s) => (
-                                                <option key={s} value={s}>{LEAD_STATUS_LABELS[s]}</option>
-                                            ))}
-                                        </select>
-                                        <select
-                                            className="lead-status-select"
-                                            value={lead.assigned_to_user_id || ''}
-                                            onChange={(e) => assignLead(lead, e.target.value)}
-                                        >
-                                            <option value="">Не назначен</option>
-                                            {managers.map((manager) => (
-                                                <option key={manager.id} value={manager.id}>{manager.name}</option>
-                                            ))}
-                                        </select>
-                                        <div className="lead-action-buttons">
-                                            {(lead.status === 'new' || (lead.status === 'in_progress' && !lead.phone)) && (
-                                                <button className="btn btn-sm btn-primary" type="button" onClick={() => openLeadContact(lead)}>
-                                                    ☎ Работать с заявкой
-                                                </button>
-                                            )}
-                                            {(lead.status === 'in_progress' && lead.phone) && (
-                                                <button className="btn btn-sm btn-primary" type="button" onClick={() => confirmLead(lead)}>
-                                                    ✅ Подтвердить
-                                                </button>
-                                            )}
-                                            <button className="btn btn-sm btn-outline" type="button" onClick={() => openLeadEdit(lead)}>✏️</button>
-                                            <button className="btn btn-sm btn-danger" type="button" onClick={() => deleteLead(lead)}>🗑️</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </section>
+                <AdminLeadsTab
+                    leads={leads}
+                    filteredLeads={leadsFiltered}
+                    query={query.leads}
+                    onQueryChange={(value) => setQ('leads', value)}
+                    statusFilter={leadStatusFilter}
+                    onStatusFilterChange={setLeadStatusFilter}
+                    getLeadCountByStatus={leadCountByStatus}
+                    managers={managers}
+                    onStatusChange={updateLeadStatus}
+                    onOpenContact={openLeadContact}
+                    onOpenEdit={openLeadEdit}
+                    onConfirm={confirmLead}
+                    onDelete={deleteLead}
+                    onAssignManager={assignLead}
+                />
             )}
 
-            {/* ─── Modals ─── */}
-
-            {/* User Modal */}
             {tab === 'users' && (
                 <Modal
                     isOpen={showModal}
@@ -771,24 +510,29 @@ export default function AdminDashboard() {
                     <form onSubmit={submitUser}>
                         <div className="form-group">
                             <label>Имя</label>
-                            <input value={form.name || ''} onChange={(e) => update('name', e.target.value)} required />
+                            <input value={form.name || ''} onChange={(e) => updateFormField('name', e.target.value)} required />
                         </div>
                         <div className="form-group">
                             <label>Email</label>
-                            <input type="email" value={form.email || ''} onChange={(e) => update('email', e.target.value)} required />
+                            <input type="email" value={form.email || ''} onChange={(e) => updateFormField('email', e.target.value)} required />
                         </div>
                         <div className="form-group">
                             <label>Телефон</label>
-                            <input value={form.phone || ''} onChange={(e) => update('phone', e.target.value)} />
+                            <input value={form.phone || ''} onChange={(e) => updateFormField('phone', e.target.value)} />
                         </div>
                         <div className="form-group">
                             <label>{editing ? 'Новый пароль (оставьте пустым)' : 'Пароль'}</label>
-                            <input type="password" value={form.password || ''} onChange={(e) => update('password', e.target.value)} {...(!editing ? { required: true } : {})} />
+                            <input
+                                type="password"
+                                value={form.password || ''}
+                                onChange={(e) => updateFormField('password', e.target.value)}
+                                {...(!editing ? { required: true } : {})}
+                            />
                         </div>
                         <div className="form-row">
                             <div className="form-group">
                                 <label>Роль</label>
-                                <select value={form.role || 'user'} onChange={(e) => update('role', e.target.value)}>
+                                <select value={form.role || 'user'} onChange={(e) => updateFormField('role', e.target.value)}>
                                     <option value="user">Пользователь</option>
                                     <option value="manager">Менеджер</option>
                                     <option value="admin">Админ</option>
@@ -796,7 +540,7 @@ export default function AdminDashboard() {
                             </div>
                             <div className="form-group">
                                 <label>Статус</label>
-                                <select value={form.status || 'active'} onChange={(e) => update('status', e.target.value)}>
+                                <select value={form.status || 'active'} onChange={(e) => updateFormField('status', e.target.value)}>
                                     <option value="active">active</option>
                                     <option value="inactive">inactive</option>
                                 </select>
@@ -807,7 +551,6 @@ export default function AdminDashboard() {
                 </Modal>
             )}
 
-            {/* Service Modal */}
             {tab === 'services' && (
                 <Modal
                     isOpen={showModal}
@@ -819,27 +562,29 @@ export default function AdminDashboard() {
                     <form onSubmit={submitService}>
                         <div className="form-group">
                             <label>Название</label>
-                            <input value={form.name || ''} onChange={(e) => update('name', e.target.value)} required />
+                            <input value={form.name || ''} onChange={(e) => updateFormField('name', e.target.value)} required />
                         </div>
                         <div className="form-group">
                             <label>Описание</label>
-                            <textarea value={form.description || ''} onChange={(e) => update('description', e.target.value)} rows={3} />
+                            <textarea value={form.description || ''} onChange={(e) => updateFormField('description', e.target.value)} rows={3} />
                         </div>
                         <div className="form-row">
                             <div className="form-group">
                                 <label>Цена (₽)</label>
-                                <input type="number" step="0.01" value={form.price || ''} onChange={(e) => update('price', e.target.value)} />
+                                <input type="number" step="0.01" value={form.price || ''} onChange={(e) => updateFormField('price', e.target.value)} />
                             </div>
                             <div className="form-group">
                                 <label>Категория</label>
-                                <select value={form.category_id || ''} onChange={(e) => update('category_id', e.target.value)}>
+                                <select value={form.category_id || ''} onChange={(e) => updateFormField('category_id', e.target.value)}>
                                     <option value="">Без категории</option>
-                                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    {categories.map((category) => (
+                                        <option key={category.id} value={category.id}>{category.name}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="form-group">
                                 <label>Статус</label>
-                                <select value={form.status || 'active'} onChange={(e) => update('status', e.target.value)}>
+                                <select value={form.status || 'active'} onChange={(e) => updateFormField('status', e.target.value)}>
                                     <option value="active">active</option>
                                     <option value="inactive">inactive</option>
                                 </select>
@@ -850,83 +595,6 @@ export default function AdminDashboard() {
                 </Modal>
             )}
 
-            {/* Lead Modal */}
-            {tab === 'leads' && (
-                <Modal
-                    isOpen={showModal}
-                    onClose={() => setShowModal(false)}
-                    title="Редактировать заявку"
-                    contentClassName="modal-content--elva"
-                >
-                    {error && <div className="alert alert-error">{error}</div>}
-                    <form onSubmit={submitLead}>
-                        <div className="form-group">
-                            <label>Имя</label>
-                            <input value={form.name || ''} onChange={(e) => update('name', e.target.value)} required />
-                        </div>
-                        <div className="form-group">
-                            <label>Email</label>
-                            <input type="email" value={form.email || ''} onChange={(e) => update('email', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label>Телефон</label>
-                            <input value={form.phone || ''} onChange={(e) => update('phone', e.target.value)} required />
-                        </div>
-                        <div className="form-group">
-                            <label>Услуга</label>
-                            <select value={form.service_id || ''} onChange={(e) => update('service_id', e.target.value)}>
-                                <option value="">—</option>
-                                {services.map((s) => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-group">
-                            <label>Статус</label>
-                            <select value={form.status || 'new'} onChange={(e) => update('status', e.target.value)}>
-                                <option value="new">new</option>
-                                <option value="in_progress">in_progress</option>
-                                <option value="confirmed">confirmed</option>
-                                <option value="done">done</option>
-                                <option value="cancelled">cancelled</option>
-                            </select>
-                        </div>
-                        <div className="form-group">
-                            <label>Сообщение</label>
-                            <textarea value={form.message || ''} readOnly rows={2} />
-                        </div>
-
-                        {/* Notes Section */}
-                        <div className="notes-section" style={{ marginTop: '1.5rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
-                            <h4>Внутренние заметки</h4>
-                            <div className="notes-list" style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '1rem' }}>
-                                {leadNotes.length === 0 && <p className="text-muted small">Заметок пока нет</p>}
-                                {leadNotes.map(n => (
-                                    <div key={n.id} className="note-item" style={{ fontSize: '0.9rem', marginBottom: '0.5rem', padding: '0.5rem', background: '#f8f9fa', borderRadius: '4px' }}>
-                                        <div style={{ fontWeight: 'bold' }}>{n.user?.name} <small style={{ fontWeight: 'normal' }}>{new Date(n.created_at).toLocaleString()}</small></div>
-                                        <div>{n.note}</div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="form-group">
-                                <textarea 
-                                    value={form.note || ''} 
-                                    onChange={(e) => update('note', e.target.value)} 
-                                    placeholder="Новая заметка..." 
-                                    rows={2}
-                                />
-                                <button type="button" className="btn btn-outline btn-sm" onClick={addLeadNote} style={{ marginTop: '0.5rem' }}>
-                                    Добавить заметку
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '1.5rem' }}>Сохранить статус</button>
-                    </form>
-                </Modal>
-            )}
-
-            {/* Category Modal */}
             {tab === 'categories' && (
                 <Modal
                     isOpen={showModal}
@@ -938,18 +606,64 @@ export default function AdminDashboard() {
                     <form onSubmit={submitCategory}>
                         <div className="form-group">
                             <label>Название</label>
-                            <input value={form.name || ''} onChange={(e) => update('name', e.target.value)} required />
+                            <input value={form.name || ''} onChange={(e) => updateFormField('name', e.target.value)} required />
                         </div>
                         <div className="form-group">
                             <label>Описание</label>
-                            <textarea value={form.description || ''} onChange={(e) => update('description', e.target.value)} rows={3} />
+                            <textarea value={form.description || ''} onChange={(e) => updateFormField('description', e.target.value)} rows={3} />
                         </div>
                         <button type="submit" className="btn btn-primary btn-block">Сохранить</button>
                     </form>
                 </Modal>
             )}
 
-            {/* Confirm Modal */}
+            <LeadEditModal
+                lead={editingLead}
+                notes={leadNotes}
+                form={editForm}
+                error={editError}
+                onClose={closeLeadEdit}
+                onSubmit={submitLead}
+                onNoteChange={(value) => setEditForm((current) => ({ ...current, note: value }))}
+                onAddNote={addLeadNote}
+                title="Редактировать заявку"
+                submitLabel="Сохранить статус"
+            >
+                <div className="form-group">
+                    <label>Имя</label>
+                    <input value={editForm.name || ''} onChange={(e) => setEditForm((current) => ({ ...current, name: e.target.value }))} required />
+                </div>
+                <div className="form-group">
+                    <label>Email</label>
+                    <input type="email" value={editForm.email || ''} onChange={(e) => setEditForm((current) => ({ ...current, email: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                    <label>Телефон</label>
+                    <input value={editForm.phone || ''} onChange={(e) => setEditForm((current) => ({ ...current, phone: e.target.value }))} required />
+                </div>
+                <div className="form-group">
+                    <label>Услуга</label>
+                    <select value={editForm.service_id || ''} onChange={(e) => setEditForm((current) => ({ ...current, service_id: e.target.value }))}>
+                        <option value="">—</option>
+                        {services.map((service) => (
+                            <option key={service.id} value={service.id}>{service.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label>Статус</label>
+                    <select value={editForm.status || 'new'} onChange={(e) => setEditForm((current) => ({ ...current, status: e.target.value }))}>
+                        {Object.entries(LEAD_STATUS_LABELS).map(([status, label]) => (
+                            <option key={status} value={status}>{label}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label>Сообщение</label>
+                    <textarea value={editForm.message || ''} readOnly rows={2} />
+                </div>
+            </LeadEditModal>
+
             <Modal
                 isOpen={!!confirmModal.isOpen}
                 onClose={() => setConfirmModal({ isOpen: false })}
@@ -977,36 +691,14 @@ export default function AdminDashboard() {
                 </div>
             </Modal>
 
-            <Modal
-                isOpen={!!leadContactModal.isOpen}
+            <LeadContactModal
+                lead={leadContactModal.lead}
+                isOpen={leadContactModal.isOpen}
                 onClose={closeLeadContact}
-                title="Связаться по телефону"
-                contentClassName="modal-content--elva"
-            >
-                <div style={{ display: 'grid', gap: '1.2rem' }}>
-                    <div className="alert" style={{ margin: 0 }}>
-                        <div style={{ fontWeight: 700, marginBottom: '0.35rem' }}>
-                            {leadContactModal.lead?.name || 'Клиент'}
-                        </div>
-                        <div style={{ fontSize: '1.7rem', letterSpacing: '0.02em' }}>
-                            {leadContactModal.lead?.phone || leadContactModal.lead?.user?.phone || 'Телефон недоступен'}
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                        <button type="button" className="btn btn-outline" onClick={() => actLead('postpone')}>
-                            Отложить
-                        </button>
-                        <button type="button" className="btn btn-danger" onClick={() => actLead('reject')}>
-                            Отклонить
-                        </button>
-                        <button type="button" className="btn btn-primary" onClick={() => actLead('done')}>
-                            Выполнено
-                        </button>
-                    </div>
-                </div>
-            </Modal>
+                onPostpone={() => actLead('postpone')}
+                onReject={() => actLead('reject')}
+                onDone={() => actLead('done')}
+            />
         </div>
     );
 }
-

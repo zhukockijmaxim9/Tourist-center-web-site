@@ -21,6 +21,7 @@ export default function AdminLeadsTab({
     claimingLeadId,
     confirmingLeadId,
     assigningLeadId,
+    onOpenDetails,
 }) {
     return (
         <section className="dashboard-section">
@@ -29,7 +30,7 @@ export default function AdminLeadsTab({
                     <h2>Заявки ({filteredLeads.length})</h2>
                     <input
                         className="input input-sm"
-                        placeholder="Поиск: имя, email, телефон, услуга..."
+                        placeholder="Поиск: имя, телефон, услуга..."
                         value={query}
                         onChange={(e) => onQueryChange(e.target.value)}
                         style={{ marginTop: '0.8rem', maxWidth: 520 }}
@@ -61,6 +62,7 @@ export default function AdminLeadsTab({
                     claimingLeadId={claimingLeadId}
                     confirmingLeadId={confirmingLeadId}
                     assigningLeadId={assigningLeadId}
+                    onOpenDetails={onOpenDetails}
                 />
             )}
         </section>

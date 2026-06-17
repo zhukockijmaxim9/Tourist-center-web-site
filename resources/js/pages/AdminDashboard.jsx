@@ -10,6 +10,7 @@ import AdminReviewsTab from '../features/admin/AdminReviewsTab';
 import AdminServicesTab from '../features/admin/AdminServicesTab';
 import AdminUsersTab from '../features/admin/AdminUsersTab';
 import LeadContactModal from '../features/leads/LeadContactModal';
+import LeadDetailsModal from '../features/leads/LeadDetailsModal';
 import LeadEditModal from '../features/leads/LeadEditModal';
 import useLeadWorkflow from '../features/leads/useLeadWorkflow';
 import { useNotify, getErrorMessage } from '../context/NotifyContext';
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
     const [form, setForm] = useState({});
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+    const [selectedLeadDetails, setSelectedLeadDetails] = useState(null);
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [leadStatusFilter, setLeadStatusFilter] = useState('all');
     const [confirmModal, setConfirmModal] = useState({ isOpen: false });
@@ -558,6 +560,7 @@ export default function AdminDashboard() {
                     claimingLeadId={claimingLeadId}
                     confirmingLeadId={confirmingLeadId}
                     assigningLeadId={assigningLeadId}
+                    onOpenDetails={setSelectedLeadDetails}
                 />
             )}
 
@@ -687,6 +690,12 @@ export default function AdminDashboard() {
                     </form>
                 </Modal>
             )}
+
+            <LeadDetailsModal
+                lead={selectedLeadDetails}
+                isOpen={!!selectedLeadDetails}
+                onClose={() => setSelectedLeadDetails(null)}
+            />
 
             <LeadEditModal
                 lead={editingLead}

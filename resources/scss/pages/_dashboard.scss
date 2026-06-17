@@ -1,5 +1,129 @@
 @use "../abstracts/variables" as *;
 
+// ─── Admin Leads Table ─────────────────────────────────────────────
+
+.leads-table-shell {
+    border-radius: $radius-lg;
+    border: 1px solid $glass-border;
+    background: $bg-card;
+    box-shadow: $shadow;
+    overflow: hidden;
+    font-family: $font-sans;
+    font-size: 1.35rem;
+}
+
+.leads-table-header {
+    display: flex;
+    align-items: center;
+    padding: 1.2rem 1.6rem;
+    background: var(--table-header-bg);
+    border-bottom: 1px solid $glass-border;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $text-muted;
+    white-space: nowrap;
+}
+
+.leads-table-row {
+    display: flex;
+    align-items: center;
+    padding: 1.2rem 1.6rem;
+    border-bottom: 1px solid $glass-border;
+    transition: $transition;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover,
+    &.hovered {
+        background: var(--table-row-hover);
+    }
+}
+
+.leads-table-col {
+    padding: 0 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+}
+
+.leads-table-cell-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.leads-col-name   { width: 160px; min-width: 160px; }
+.leads-col-phone  { width: 130px; min-width: 130px; }
+.leads-col-service{ width: 180px; min-width: 180px; flex: 1; }
+.leads-col-manager{ width: 130px; min-width: 130px; }
+.leads-col-status { width: 150px; min-width: 150px; }
+.leads-col-date   { width: 100px; min-width: 100px; }
+.leads-col-actions{ width: auto; min-width: 220px; flex-shrink: 0; padding-left: 1rem; }
+
+.leads-table-col:first-child { padding-left: 0; }
+.leads-table-col:last-child  { padding-right: 0; }
+
+.leads-table-header .leads-col-actions {
+    text-align: left;
+}
+
+@media (max-width: 1100px) {
+    .leads-table-header,
+    .leads-table-row {
+        padding: 1rem 1.2rem;
+    }
+
+    .leads-col-name   { width: 130px; min-width: 130px; }
+    .leads-col-phone  { width: 110px; min-width: 110px; }
+    .leads-col-service{ width: 140px; min-width: 140px; }
+    .leads-col-manager{ width: 110px; min-width: 110px; }
+    .leads-col-status { width: 130px; min-width: 130px; }
+    .leads-col-date   { width: 90px; min-width: 90px; }
+    .leads-col-actions{ min-width: 180px; }
+}
+
+@media (max-width: 900px) {
+    .leads-table-header {
+        display: none;
+    }
+
+    .leads-table-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
+        padding: 1.2rem;
+    }
+
+    .leads-table-col {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 0;
+    }
+
+    .leads-table-cell-text {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .leads-col-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        align-items: center;
+    }
+
+    .leads-col-actions .lead-action-buttons {
+        flex-wrap: wrap;
+    }
+}
+
 .dashboard {
     max-width: 1200px;
     margin: 0 auto;

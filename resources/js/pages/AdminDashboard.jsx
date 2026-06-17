@@ -33,6 +33,8 @@ export default function AdminDashboard() {
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState({});
     const [error, setError] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
     const [leadStatusFilter, setLeadStatusFilter] = useState('all');
     const [confirmModal, setConfirmModal] = useState({ isOpen: false });
     const [query, setQuery] = useState({ users: '', services: '', categories: '', leads: '', reviews: '' });
@@ -56,6 +58,14 @@ export default function AdminDashboard() {
         closeLeadContact,
         actLead,
         confirmLead,
+        assignLead,
+        updatingStatusLeadId,
+        savingLead,
+        savingNote,
+        claimingLeadId,
+        acting,
+        confirmingLeadId,
+        assigningLeadId,
     } = useLeadWorkflow();
 
     useEffect(() => {
@@ -149,7 +159,9 @@ export default function AdminDashboard() {
 
     const submitUser = async (e) => {
         e.preventDefault();
+        if (saving) return;
         setError('');
+        setSaving(true);
 
         try {
             const data = { ...form };
@@ -157,14 +169,18 @@ export default function AdminDashboard() {
 
             if (editing) {
                 await usersApi.update(editing.id, data);
+                notify.success('Пользователь обновлён');
             } else {
                 await usersApi.create(data);
+                notify.success('Пользователь создан');
             }
 
             setShowModal(false);
             await loadAll();
         } catch (err) {
             handleError(err);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -176,9 +192,17 @@ export default function AdminDashboard() {
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await usersApi.delete(user.id);
-                setConfirmModal({ isOpen: false });
-                await loadAll();
+                setConfirmLoading(true);
+                try {
+                    await usersApi.delete(user.id);
+                    setConfirmModal({ isOpen: false });
+                    notify.success('Пользователь удалён');
+                    await loadAll();
+                } catch (err) {
+                    notify.fromError(err, 'Не удалось удалить пользователя');
+                } finally {
+                    setConfirmLoading(false);
+                }
             },
         });
     };
@@ -206,19 +230,25 @@ export default function AdminDashboard() {
 
     const submitService = async (e) => {
         e.preventDefault();
+        if (saving) return;
         setError('');
+        setSaving(true);
 
         try {
             if (editing) {
                 await servicesApi.update(editing.id, form);
+                notify.success('Услуга обновлена');
             } else {
                 await servicesApi.create(form);
+                notify.success('Услуга создана');
             }
 
             setShowModal(false);
             await loadAll();
         } catch (err) {
             handleError(err);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -230,9 +260,17 @@ export default function AdminDashboard() {
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await servicesApi.delete(service.id);
-                setConfirmModal({ isOpen: false });
-                await loadAll();
+                setConfirmLoading(true);
+                try {
+                    await servicesApi.delete(service.id);
+                    setConfirmModal({ isOpen: false });
+                    notify.success('Услуга удалена');
+                    await loadAll();
+                } catch (err) {
+                    notify.fromError(err, 'Не удалось удалить услугу');
+                } finally {
+                    setConfirmLoading(false);
+                }
             },
         });
     };
@@ -253,19 +291,25 @@ export default function AdminDashboard() {
 
     const submitCategory = async (e) => {
         e.preventDefault();
+        if (saving) return;
         setError('');
+        setSaving(true);
 
         try {
             if (editing) {
                 await categoriesApi.update(editing.id, form);
+                notify.success('Категория обновлена');
             } else {
                 await categoriesApi.create(form);
+                notify.success('Категория создана');
             }
 
             setShowModal(false);
             await loadAll();
         } catch (err) {
             handleError(err);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -277,9 +321,17 @@ export default function AdminDashboard() {
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await categoriesApi.delete(category.id);
-                setConfirmModal({ isOpen: false });
-                await loadAll();
+                setConfirmLoading(true);
+                try {
+                    await categoriesApi.delete(category.id);
+                    setConfirmModal({ isOpen: false });
+                    notify.success('Категория удалена');
+                    await loadAll();
+                } catch (err) {
+                    notify.fromError(err, 'Не удалось удалить категорию');
+                } finally {
+                    setConfirmLoading(false);
+                }
             },
         });
     };
@@ -292,23 +344,19 @@ export default function AdminDashboard() {
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await reviewsApi.delete(review.id);
-                setConfirmModal({ isOpen: false });
-                await loadAll();
+                setConfirmLoading(true);
+                try {
+                    await reviewsApi.delete(review.id);
+                    setConfirmModal({ isOpen: false });
+                    notify.success('Отзыв удалён');
+                    await loadAll();
+                } catch (err) {
+                    notify.fromError(err, 'Не удалось удалить отзыв');
+                } finally {
+                    setConfirmLoading(false);
+                }
             },
         });
-    };
-
-    const assignLead = async (lead, managerId) => {
-        try {
-            const res = await leadsApi.assign(lead.id, {
-                assigned_to_user_id: managerId ? Number(managerId) : null,
-            });
-            const updatedLead = res.data;
-            setLeads((current) => current.map((item) => (item.id === lead.id ? { ...item, ...updatedLead } : item)));
-        } catch (err) {
-            notify.fromError(err, 'Не удалось назначить менеджера');
-        }
     };
 
     const deleteLead = async (lead) => {
@@ -319,12 +367,22 @@ export default function AdminDashboard() {
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await leadsApi.delete(lead.id);
-                setConfirmModal({ isOpen: false });
-                await reloadLeads();
+                setConfirmLoading(true);
+                try {
+                    await leadsApi.delete(lead.id);
+                    setConfirmModal({ isOpen: false });
+                    notify.success('Заявка удалена');
+                    await reloadLeads();
+                } catch (err) {
+                    notify.fromError(err, 'Не удалось удалить заявку');
+                } finally {
+                    setConfirmLoading(false);
+                }
             },
         });
     };
+
+
 
     const handleError = (err) => {
         const message = err.response?.data?.errors;
@@ -496,6 +554,10 @@ export default function AdminDashboard() {
                     onConfirm={confirmLead}
                     onDelete={deleteLead}
                     onAssignManager={assignLead}
+                    updatingStatusLeadId={updatingStatusLeadId}
+                    claimingLeadId={claimingLeadId}
+                    confirmingLeadId={confirmingLeadId}
+                    assigningLeadId={assigningLeadId}
                 />
             )}
 
@@ -505,6 +567,7 @@ export default function AdminDashboard() {
                     onClose={() => setShowModal(false)}
                     title={editing ? 'Редактировать' : 'Новый пользователь'}
                     contentClassName="modal-content--elva"
+                    disableClose={saving}
                 >
                     {error && <div className="alert alert-error">{error}</div>}
                     <form onSubmit={submitUser}>
@@ -546,7 +609,9 @@ export default function AdminDashboard() {
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" className="btn btn-primary btn-block">Сохранить</button>
+                        <button type="submit" className="btn btn-primary btn-block" disabled={saving}>
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
                     </form>
                 </Modal>
             )}
@@ -557,6 +622,7 @@ export default function AdminDashboard() {
                     onClose={() => setShowModal(false)}
                     title={editing ? 'Редактировать' : 'Новая услуга'}
                     contentClassName="modal-content--elva"
+                    disableClose={saving}
                 >
                     {error && <div className="alert alert-error">{error}</div>}
                     <form onSubmit={submitService}>
@@ -590,7 +656,9 @@ export default function AdminDashboard() {
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" className="btn btn-primary btn-block">Сохранить</button>
+                        <button type="submit" className="btn btn-primary btn-block" disabled={saving}>
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
                     </form>
                 </Modal>
             )}
@@ -601,6 +669,7 @@ export default function AdminDashboard() {
                     onClose={() => setShowModal(false)}
                     title={editing ? 'Редактировать категорию' : 'Новая категория'}
                     contentClassName="modal-content--elva"
+                    disableClose={saving}
                 >
                     {error && <div className="alert alert-error">{error}</div>}
                     <form onSubmit={submitCategory}>
@@ -612,7 +681,9 @@ export default function AdminDashboard() {
                             <label>Описание</label>
                             <textarea value={form.description || ''} onChange={(e) => updateFormField('description', e.target.value)} rows={3} />
                         </div>
-                        <button type="submit" className="btn btn-primary btn-block">Сохранить</button>
+                        <button type="submit" className="btn btn-primary btn-block" disabled={saving}>
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
                     </form>
                 </Modal>
             )}
@@ -626,6 +697,8 @@ export default function AdminDashboard() {
                 onSubmit={submitLead}
                 onNoteChange={(value) => setEditForm((current) => ({ ...current, note: value }))}
                 onAddNote={addLeadNote}
+                isSaving={savingLead}
+                isSavingNote={savingNote}
                 title="Редактировать заявку"
                 submitLabel="Сохранить статус"
             >
@@ -669,6 +742,7 @@ export default function AdminDashboard() {
                 onClose={() => setConfirmModal({ isOpen: false })}
                 title={confirmModal.title || 'Подтверждение'}
                 contentClassName="modal-content--elva"
+                disableClose={confirmLoading}
             >
                 <p style={{ marginTop: 0 }}>{confirmModal.body || 'Вы уверены?'}</p>
                 <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
@@ -678,6 +752,7 @@ export default function AdminDashboard() {
                     <button
                         className={`btn ${confirmModal.danger ? 'btn-danger' : 'btn-primary'}`}
                         type="button"
+                        disabled={confirmLoading}
                         onClick={async () => {
                             try {
                                 await confirmModal.onConfirm?.();
@@ -686,7 +761,7 @@ export default function AdminDashboard() {
                             }
                         }}
                     >
-                        {confirmModal.confirmText || 'Ок'}
+                        {confirmLoading ? 'Удаление...' : (confirmModal.confirmText || 'Ок')}
                     </button>
                 </div>
             </Modal>
@@ -698,6 +773,7 @@ export default function AdminDashboard() {
                 onPostpone={() => actLead('postpone')}
                 onReject={() => actLead('reject')}
                 onDone={() => actLead('done')}
+                isActing={acting}
             />
         </div>
     );

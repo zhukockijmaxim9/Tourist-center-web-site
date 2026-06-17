@@ -12,7 +12,6 @@ class ReviewController extends Controller
 {
     public function index()
     {
-        // For admin: show all
         return response()->json(Review::with(['user', 'service'])->latest()->get());
     }
 
@@ -22,7 +21,6 @@ class ReviewController extends Controller
         $userId = Auth::id();
         $serviceId = $validated['service_id'];
 
-        // Verify user has a completed lead for this service
         $hasCompletedLead = Lead::where('user_id', $userId)
             ->where('service_id', $serviceId)
             ->whereHas('leadStatus', fn ($q) => $q->where('name', 'done'))
@@ -34,7 +32,6 @@ class ReviewController extends Controller
             ], 403);
         }
 
-        // Check if user already reviewed this service
         $alreadyReviewed = Review::where('user_id', $userId)
             ->where('service_id', $serviceId)
             ->exists();

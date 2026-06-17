@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function LeadNotesPanel({ notes, noteValue, onNoteChange, onAddNote }) {
+export default function LeadNotesPanel({ notes, noteValue, onNoteChange, onAddNote, isSavingNote = false }) {
     return (
         <div className="notes-section" style={{ marginTop: '1.5rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
             <h4>Внутренние заметки</h4>
@@ -26,8 +26,8 @@ export default function LeadNotesPanel({ notes, noteValue, onNoteChange, onAddNo
                     placeholder="Новая заметка..."
                     rows={2}
                 />
-                <button type="button" className="btn btn-outline btn-sm" onClick={onAddNote} style={{ marginTop: '0.5rem' }}>
-                    Добавить заметку
+                <button type="button" className="btn btn-outline btn-sm" onClick={onAddNote} disabled={isSavingNote} style={{ marginTop: '0.5rem' }}>
+                    {isSavingNote ? 'Добавление...' : 'Добавить заметку'}
                 </button>
             </div>
         </div>

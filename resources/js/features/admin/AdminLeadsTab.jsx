@@ -17,6 +17,10 @@ export default function AdminLeadsTab({
     onConfirm,
     onDelete,
     onAssignManager,
+    updatingStatusLeadId,
+    claimingLeadId,
+    confirmingLeadId,
+    assigningLeadId,
 }) {
     return (
         <section className="dashboard-section">
@@ -53,6 +57,10 @@ export default function AdminLeadsTab({
                     onAssignManager={onAssignManager}
                     managers={managers}
                     showManagerInfo
+                    updatingStatusLeadId={updatingStatusLeadId}
+                    claimingLeadId={claimingLeadId}
+                    confirmingLeadId={confirmingLeadId}
+                    assigningLeadId={assigningLeadId}
                 />
             )}
         </section>

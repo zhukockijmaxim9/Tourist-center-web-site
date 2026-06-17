@@ -15,6 +15,7 @@ export default function ServiceDetailsModal({
     const notify = useNotify();
     const [serviceDetails, setServiceDetails] = useState(null);
     const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+    const [submittingReview, setSubmittingReview] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -58,8 +59,9 @@ export default function ServiceDetailsModal({
 
     const handleReviewSubmit = async (e) => {
         e.preventDefault();
-        if (!serviceDetails?.id) return;
+        if (!serviceDetails?.id || submittingReview) return;
 
+        setSubmittingReview(true);
         try {
             await reviewsApi.create({
                 service_id: serviceDetails.id,
@@ -70,6 +72,8 @@ export default function ServiceDetailsModal({
             await reloadDetails();
         } catch (err) {
             notify.fromError(err, 'Ошибка при отправке отзыва');
+        } finally {
+            setSubmittingReview(false);
         }
     };
 
@@ -184,7 +188,9 @@ export default function ServiceDetailsModal({
                                     placeholder="Поделитесь вашим мнением..."
                                 />
                             </div>
-                            <button type="submit" className="btn btn-primary btn-block">Отправить отзыв</button>
+                            <button type="submit" className="btn btn-primary btn-block" disabled={submittingReview}>
+                                {submittingReview ? 'Отправка...' : 'Отправить отзыв'}
+                            </button>
                         </form>
                     ) : null}
 

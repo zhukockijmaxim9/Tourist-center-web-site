@@ -28,6 +28,12 @@ export default function ManagerDashboard() {
         closeLeadContact,
         actLead,
         confirmLead,
+        updatingStatusLeadId,
+        savingLead,
+        savingNote,
+        claimingLeadId,
+        acting,
+        confirmingLeadId,
     } = useLeadWorkflow({
         createEditForm: (lead) => ({
             status: lead.status || 'new',
@@ -127,6 +133,9 @@ export default function ManagerDashboard() {
                         onOpenEdit={openLeadEdit}
                         onConfirm={confirmLead}
                         editButtonLabel="Заметки"
+                        updatingStatusLeadId={updatingStatusLeadId}
+                        claimingLeadId={claimingLeadId}
+                        confirmingLeadId={confirmingLeadId}
                     />
                 )}
             </section>
@@ -140,6 +149,8 @@ export default function ManagerDashboard() {
                 onSubmit={submitLead}
                 onNoteChange={(value) => setEditForm((current) => ({ ...current, note: value }))}
                 onAddNote={addLeadNote}
+                isSaving={savingLead}
+                isSavingNote={savingNote}
                 title="Заявка и заметки"
                 submitLabel="Сохранить статус"
             >
@@ -167,6 +178,7 @@ export default function ManagerDashboard() {
                 onPostpone={() => actLead('postpone')}
                 onReject={() => actLead('reject')}
                 onDone={() => actLead('done')}
+                isActing={acting}
             />
         </div>
     );

@@ -24,6 +24,7 @@ export default function useLeadForm({
     const [form, setForm] = useState(buildEmptyForm());
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [initialLead, setInitialLead] = useState(null);
 
     const fallbackServiceId = useMemo(
@@ -75,7 +76,9 @@ export default function useLeadForm({
 
     const submit = async (e) => {
         e.preventDefault();
+        if (loading) return;
         setError('');
+        setLoading(true);
 
         const payload = {
             name: form.name,
@@ -107,6 +110,8 @@ export default function useLeadForm({
             } else {
                 setError(getErrorMessage(err, mode === 'edit' ? 'Ошибка сохранения заявки' : 'Ошибка при отправке'));
             }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -116,6 +121,7 @@ export default function useLeadForm({
         form,
         error,
         success,
+        loading,
         initialLead,
         openCreate,
         openEdit,

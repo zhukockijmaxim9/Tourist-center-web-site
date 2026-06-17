@@ -140,6 +140,7 @@ export default function Landing() {
                 success={leadForm.success}
                 onChange={leadForm.updateField}
                 onSubmit={leadForm.submit}
+                isLoading={leadForm.loading}
                 variant="booking"
             />
 

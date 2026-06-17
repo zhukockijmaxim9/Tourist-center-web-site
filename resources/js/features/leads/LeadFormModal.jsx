@@ -14,6 +14,7 @@ export default function LeadFormModal({
     success,
     onChange,
     onSubmit,
+    isLoading = false,
     variant = 'default',
 }) {
     const isBooking = variant === 'booking';
@@ -138,8 +139,14 @@ export default function LeadFormModal({
                             />
                         </div>
 
-                        <button type="submit" className={isBooking ? 'booking-form__submit' : 'btn btn-primary btn-block'}>
-                            {mode === 'edit' ? 'Сохранить' : isBooking ? 'оставить заявку' : 'Отправить'}
+                        <button type="submit" className={isBooking ? 'booking-form__submit' : 'btn btn-primary btn-block'} disabled={isLoading}>
+                            {isLoading
+                                ? 'Отправка...'
+                                : mode === 'edit'
+                                    ? 'Сохранить'
+                                    : isBooking
+                                        ? 'оставить заявку'
+                                        : 'Отправить'}
                         </button>
                     </form>
                 </>

@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from '../../components/Modal';
 
-export default function LeadContactModal({ lead, isOpen, onClose, onPostpone, onReject, onDone }) {
+export default function LeadContactModal({ lead, isOpen, onClose, onPostpone, onReject, onDone, isActing = false }) {
     return (
         <Modal
             isOpen={!!isOpen}
@@ -20,13 +20,13 @@ export default function LeadContactModal({ lead, isOpen, onClose, onPostpone, on
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                    <button type="button" className="btn btn-outline" onClick={onPostpone}>
+                    <button type="button" className="btn btn-outline" onClick={onPostpone} disabled={isActing}>
                         Отложить
                     </button>
-                    <button type="button" className="btn btn-danger" onClick={onReject}>
+                    <button type="button" className="btn btn-danger" onClick={onReject} disabled={isActing}>
                         Отклонить
                     </button>
-                    <button type="button" className="btn btn-primary" onClick={onDone}>
+                    <button type="button" className="btn btn-primary" onClick={onDone} disabled={isActing}>
                         Выполнено
                     </button>
                 </div>

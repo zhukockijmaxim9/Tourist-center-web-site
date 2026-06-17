@@ -11,6 +11,8 @@ export default function LeadEditModal({
     onSubmit,
     onNoteChange,
     onAddNote,
+    isSaving = false,
+    isSavingNote = false,
     title = 'Редактировать заявку',
     submitLabel = 'Сохранить',
     children,
@@ -30,9 +32,10 @@ export default function LeadEditModal({
                     noteValue={form.note}
                     onNoteChange={onNoteChange}
                     onAddNote={onAddNote}
+                    isSavingNote={isSavingNote}
                 />
-                <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '1.5rem' }}>
-                    {submitLabel}
+                <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '1.5rem' }} disabled={isSaving}>
+                    {isSaving ? 'Сохранение...' : submitLabel}
                 </button>
             </form>
         </Modal>

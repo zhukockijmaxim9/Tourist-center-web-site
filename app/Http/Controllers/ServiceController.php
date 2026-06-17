@@ -37,20 +37,17 @@ class ServiceController extends Controller
         $data['avg_rating'] = $service->reviews->avg('rating');
         $data['reviews_count'] = $service->reviews->count();
 
-        // Check if the current authenticated user can leave a review
         $data['can_review'] = false;
         $data['has_reviewed'] = false;
 
         if (Auth::check() && Auth::user()->role === 'user') {
             $userId = Auth::id();
 
-            // User must have at least one completed lead for this service
             $hasCompletedLead = Lead::where('user_id', $userId)
                 ->where('service_id', $service->id)
                 ->whereHas('leadStatus', fn ($q) => $q->where('name', 'done'))
                 ->exists();
 
-            // Check if user already left a review for this service
             $hasReviewed = $service->reviews()
                 ->where('user_id', $userId)
                 ->exists();

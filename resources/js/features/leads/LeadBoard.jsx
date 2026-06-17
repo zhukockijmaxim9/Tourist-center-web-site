@@ -12,6 +12,10 @@ export default function LeadBoard({
     managers = [],
     showManagerInfo = false,
     editButtonLabel = '✏️',
+    updatingStatusLeadId = null,
+    claimingLeadId = null,
+    confirmingLeadId = null,
+    assigningLeadId = null,
 }) {
     return (
         <div className="leads-list">
@@ -49,6 +53,7 @@ export default function LeadBoard({
                             className={`lead-status-select lead-status-${LEAD_STATUS_COLORS[lead.status]}`}
                             value={lead.status}
                             onChange={(e) => onStatusChange(lead, e.target.value)}
+                            disabled={updatingStatusLeadId === lead.id}
                         >
                             {LEAD_STATUSES.map((status) => (
                                 <option key={status} value={status}>{LEAD_STATUS_LABELS[status]}</option>
@@ -59,6 +64,7 @@ export default function LeadBoard({
                                 className="lead-status-select"
                                 value={lead.assigned_to_user_id || ''}
                                 onChange={(e) => onAssignManager(lead, e.target.value)}
+                                disabled={assigningLeadId === lead.id}
                             >
                                 <option value="">Не назначен</option>
                                 {managers.map((manager) => (
@@ -68,13 +74,13 @@ export default function LeadBoard({
                         )}
                         <div className="lead-action-buttons">
                             {(lead.status === 'new' || (lead.status === 'in_progress' && !lead.phone)) && (
-                                <button className="btn btn-sm btn-primary" type="button" onClick={() => onOpenContact(lead)}>
-                                    Работать с заявкой
+                                <button className="btn btn-sm btn-primary" type="button" onClick={() => onOpenContact(lead)} disabled={claimingLeadId === lead.id}>
+                                    {claimingLeadId === lead.id ? 'Захват...' : 'Работать с заявкой'}
                                 </button>
                             )}
                             {lead.status === 'in_progress' && lead.phone && onConfirm && (
-                                <button className="btn btn-sm btn-primary" type="button" onClick={() => onConfirm(lead)}>
-                                    Подтвердить
+                                <button className="btn btn-sm btn-primary" type="button" onClick={() => onConfirm(lead)} disabled={confirmingLeadId === lead.id}>
+                                    {confirmingLeadId === lead.id ? 'Подтверждение...' : 'Подтвердить'}
                                 </button>
                             )}
                             <button className="btn btn-sm btn-outline" type="button" onClick={() => onOpenEdit(lead)}>

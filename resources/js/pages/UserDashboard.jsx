@@ -28,6 +28,7 @@ export default function UserDashboard() {
     const notify = useNotify();
     const [leads, setLeads] = useState([]);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false });
+    const [confirmLoading, setConfirmLoading] = useState(false);
     const [leadStatusFilter, setLeadStatusFilter] = useState('all');
     const {
         services,
@@ -77,9 +78,17 @@ export default function UserDashboard() {
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
-                await leadsApi.delete(lead.id);
-                setConfirmModal({ isOpen: false });
-                await loadLeads();
+                setConfirmLoading(true);
+                try {
+                    await leadsApi.delete(lead.id);
+                    setConfirmModal({ isOpen: false });
+                    notify.success('Заявка удалена');
+                    await loadLeads();
+                } catch (err) {
+                    notify.fromError(err, 'Не удалось удалить заявку');
+                } finally {
+                    setConfirmLoading(false);
+                }
             },
         });
     };
@@ -313,6 +322,7 @@ export default function UserDashboard() {
                 success={leadForm.success}
                 onChange={leadForm.updateField}
                 onSubmit={leadForm.submit}
+                isLoading={leadForm.loading}
             />
 
             <Modal
@@ -320,6 +330,7 @@ export default function UserDashboard() {
                 onClose={() => setConfirmModal({ isOpen: false })}
                 title={confirmModal.title || 'Подтверждение'}
                 contentClassName="modal-content--elva"
+                disableClose={confirmLoading}
             >
                 <p className="user-dashboard-confirm-text">{confirmModal.body || 'Вы уверены?'}</p>
                 <div className="user-dashboard-modal-actions">
@@ -329,6 +340,7 @@ export default function UserDashboard() {
                     <button
                         className={`btn ${confirmModal.danger ? 'btn-danger' : 'btn-primary'}`}
                         type="button"
+                        disabled={confirmLoading}
                         onClick={async () => {
                             try {
                                 await confirmModal.onConfirm?.();
@@ -337,7 +349,7 @@ export default function UserDashboard() {
                             }
                         }}
                     >
-                        {confirmModal.confirmText || 'Ок'}
+                        {confirmLoading ? 'Удаление...' : (confirmModal.confirmText || 'Ок')}
                     </button>
                 </div>
             </Modal>

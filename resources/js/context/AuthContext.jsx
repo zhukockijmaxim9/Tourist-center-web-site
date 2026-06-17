@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '../api';
+import { useNotify } from './NotifyContext';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+    const notify = useNotify();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -35,8 +37,13 @@ export function AuthProvider({ children }) {
     };
 
     const logout = async () => {
-        await authApi.logout();
-        setUser(null);
+        try {
+            await authApi.logout();
+            setUser(null);
+            notify.success('Вы вышли из системы');
+        } catch (err) {
+            notify.fromError(err, 'Не удалось выйти');
+        }
     };
 
     const updateProfile = async (data) => {

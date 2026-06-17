@@ -9,16 +9,17 @@ export default function Modal({
     variant,
     overlayClassName = '',
     contentClassName = '',
+    disableClose = false,
 }) {
     const isBooking = variant === 'booking';
 
     useEffect(() => {
         const handleEsc = (e) => {
-            if (e.key === 'Escape') onClose();
+            if (e.key === 'Escape' && !disableClose) onClose();
         };
         if (isOpen) window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
-    }, [isOpen, onClose]);
+    }, [isOpen, onClose, disableClose]);
 
     useEffect(() => {
         if (!isOpen) return undefined;
@@ -41,7 +42,7 @@ export default function Modal({
     return createPortal(
         <div
             className={overlayCls}
-            onClick={onClose}
+            onClick={disableClose ? undefined : onClose}
             role="presentation"
         >
             <div className={contentCls} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">

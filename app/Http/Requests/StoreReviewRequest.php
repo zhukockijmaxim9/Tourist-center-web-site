@@ -20,6 +20,7 @@ class StoreReviewRequest extends FormRequest
     {
         return [
             'service_id' => 'required|exists:services,id',
+            'lead_id' => 'nullable|exists:leads,id',
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string',
         ];
@@ -30,6 +31,7 @@ class StoreReviewRequest extends FormRequest
         return [
             'service_id.required' => 'Выберите услугу для отзыва',
             'service_id.exists' => 'Указанная услуга не найдена',
+            'lead_id.exists' => 'Указанная заявка не найдена',
             'rating.required' => 'Пожалуйста, поставьте оценку',
             'rating.integer' => 'Оценка должна быть целым числом',
             'rating.min' => 'Минимальная оценка - 1',

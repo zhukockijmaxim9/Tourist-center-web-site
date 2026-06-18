@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotify } from '../context/NotifyContext';
 import LeadFormModal from '../features/leads/LeadFormModal';
 import useLeadForm from '../features/leads/useLeadForm';
+import ReviewFormModal from '../features/reviews/ReviewFormModal';
 import ServiceCardGrid from '../features/services/ServiceCardGrid';
 import ServiceCategoryFilter from '../features/services/ServiceCategoryFilter';
 import useServicesCatalog from '../features/services/useServicesCatalog';
@@ -29,6 +30,7 @@ export default function UserDashboard() {
     const [confirmModal, setConfirmModal] = useState({ isOpen: false });
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [leadStatusFilter, setLeadStatusFilter] = useState('all');
+    const [reviewModal, setReviewModal] = useState({ isOpen: false, lead: null });
     const {
         services,
         categories,
@@ -68,6 +70,14 @@ export default function UserDashboard() {
         allowEdit: true,
         onSuccess: loadLeads,
     });
+
+    const handleOpenReview = (lead) => {
+        setReviewModal({ isOpen: true, lead });
+    };
+
+    const handleCloseReview = () => {
+        setReviewModal({ isOpen: false, lead: null });
+    };
 
     const handleDelete = async (lead) => {
         setConfirmModal({
@@ -301,6 +311,17 @@ export default function UserDashboard() {
                                 data={filteredLeads}
                                 onEdit={leadForm.openEdit}
                                 onDelete={handleDelete}
+                                renderActions={(lead) => (
+                                    lead.status === 'done' && !lead.has_reviewed ? (
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-primary"
+                                            onClick={() => handleOpenReview(lead)}
+                                        >
+                                            Оставить отзыв
+                                        </button>
+                                    ) : null
+                                )}
                             />
                         )}
                     </div>
@@ -321,6 +342,13 @@ export default function UserDashboard() {
                 onChange={leadForm.updateField}
                 onSubmit={leadForm.submit}
                 isLoading={leadForm.loading}
+            />
+
+            <ReviewFormModal
+                isOpen={reviewModal.isOpen}
+                lead={reviewModal.lead}
+                onClose={handleCloseReview}
+                onSuccess={loadLeads}
             />
 
             <Modal

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ServiceRequest;
 use App\Models\Service;
 use App\Models\Lead;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -45,8 +46,8 @@ class ServiceController extends Controller
                 ->whereHas('leadStatus', fn ($q) => $q->where('name', 'done'))
                 ->exists();
 
-            $hasReviewed = $service->reviews()
-                ->where('user_id', $userId)
+            $hasReviewed = Review::where('user_id', $userId)
+                ->where('service_id', $service->id)
                 ->exists();
 
             $data['can_review'] = $hasCompletedLead && !$hasReviewed;

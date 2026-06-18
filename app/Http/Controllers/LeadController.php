@@ -45,10 +45,15 @@ class LeadController extends Controller
                 return $this->hidePhoneUntilClaimed($lead, $user, $now);
             });
         } else {
-            $leads = Lead::with(['service', 'leadStatus'])
+            $leads = Lead::with(['service', 'leadStatus', 'reviews'])
                 ->where('user_id', Auth::id())
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+            $leads->transform(function (Lead $lead) {
+                $lead->has_reviewed = $lead->reviews->isNotEmpty();
+                return $lead;
+            });
         }
 
         return response()->json($leads);

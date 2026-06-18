@@ -12,7 +12,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(LeadStatusSeeder::class);
 
-        // Admin account
         User::updateOrCreate(
             ['email' => 'admin@tourist.com'],
             [
@@ -23,7 +22,6 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Manager account
         User::updateOrCreate(
             ['email' => 'manager@tourist.com'],
             [
@@ -34,7 +32,6 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Test user
         User::updateOrCreate(
             ['email' => 'test@example.com'],
             [

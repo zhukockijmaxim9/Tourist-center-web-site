@@ -10,7 +10,6 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Создаем категории
         $cat1 = Category::create([
             'name' => 'Экскурсии',
             'description' => 'Увлекательные прогулки по историческим местам'
@@ -21,7 +20,6 @@ class CategorySeeder extends Seeder
             'description' => 'Отели, хостелы и гостевые дома'
         ]);
 
-        // 2. Создаем услуги и привязываем их
         Service::create([
             'name' => 'Обзорная экскурсия по городу',
             'description' => '3-часовая прогулка с гидом',

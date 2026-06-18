@@ -141,7 +141,6 @@ class LeadController extends Controller
         return response()->json($lead->notes()->with('user')->get());
     }
 
-    // ─── Admin workflow: claim/release/assign/confirm ─────────────────────
     public function claim(Request $request, Lead $lead)
     {
         /** @var User|null $user */
@@ -272,7 +271,6 @@ class LeadController extends Controller
             $fresh->confirmed_at = $now;
             $fresh->status = 'confirmed';
 
-            // after confirmation we can release lock
             $fresh->locked_by_user_id = null;
             $fresh->locked_at = null;
             $fresh->lock_expires_at = null;

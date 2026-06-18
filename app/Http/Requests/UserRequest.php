@@ -6,9 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UserRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
@@ -35,9 +32,6 @@ class UserRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     */
     public function messages(): array
     {
         return [

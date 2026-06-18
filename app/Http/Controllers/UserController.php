@@ -18,11 +18,8 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         $validated = $request->validated();
-
         $validated['password'] = Hash::make($validated['password']);
-
         $user = User::create($validated);
-
         return response()->json($user, 201);
     }
 
@@ -42,7 +39,6 @@ class UserController extends Controller
         }
 
         $user->update($validated);
-
         return response()->json($user);
     }
 

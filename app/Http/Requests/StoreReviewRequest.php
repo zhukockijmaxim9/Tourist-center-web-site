@@ -6,9 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreReviewRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return $this->user()?->role === 'user';
@@ -28,9 +25,6 @@ class StoreReviewRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     */
     public function messages(): array
     {
         return [

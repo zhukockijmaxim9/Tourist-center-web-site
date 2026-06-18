@@ -6,9 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class AuthorizeLeadActionRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         $lead = $this->route('lead');
@@ -25,9 +22,7 @@ class AuthorizeLeadActionRequest extends FormRequest
         return $lead && (int) $lead->user_id === (int) $user->id;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
+
     public function rules(): array
     {
         return [];

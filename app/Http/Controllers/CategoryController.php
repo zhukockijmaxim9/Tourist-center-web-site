@@ -16,9 +16,7 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request)
     {
         $validated = $request->validated();
-
         $category = Category::create($validated);
-
         return response()->json($category, 201);
     }
 
@@ -30,9 +28,7 @@ class CategoryController extends Controller
     public function update(CategoryRequest $request, Category $category)
     {
         $validated = $request->validated();
-
         $category->update($validated);
-
         return response()->json($category);
     }
 

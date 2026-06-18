@@ -6,9 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateLeadRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         $lead = $this->route('lead');
@@ -43,9 +40,6 @@ class UpdateLeadRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     */
     public function messages(): array
     {
         return [

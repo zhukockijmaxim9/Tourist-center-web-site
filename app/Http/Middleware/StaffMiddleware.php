@@ -13,10 +13,8 @@ class StaffMiddleware
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Доступ запрещён'], 403);
             }
-
             abort(403, 'Доступ запрещён');
         }
-
         return $next($request);
     }
 }

@@ -19,9 +19,7 @@ class ServiceController extends Controller
     public function store(ServiceRequest $request)
     {
         $validated = $request->validated();
-
         $service = Service::create($validated);
-
         return response()->json($service, 201);
     }
 
@@ -33,7 +31,6 @@ class ServiceController extends Controller
 
         $data = $service->toArray();
 
-        // Calculate average rating
         $data['avg_rating'] = $service->reviews->avg('rating');
         $data['reviews_count'] = $service->reviews->count();
 
@@ -62,9 +59,7 @@ class ServiceController extends Controller
     public function update(ServiceRequest $request, Service $service)
     {
         $validated = $request->validated();
-
         $service->update($validated);
-
         return response()->json($service);
     }
 

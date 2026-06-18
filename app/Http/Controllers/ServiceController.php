@@ -27,7 +27,7 @@ class ServiceController extends Controller
     public function show(Service $service)
     {
         $service->load(['category', 'reviews' => function($q) {
-            $q->where('is_approved', true)->with('user')->latest();
+            $q->with('user')->latest();
         }]);
 
         $data = $service->toArray();
@@ -41,17 +41,14 @@ class ServiceController extends Controller
         if (Auth::check() && Auth::user()->role === 'user') {
             $userId = Auth::id();
 
-            $hasCompletedLead = Lead::where('user_id', $userId)
+        $hasCompletedLeadWithoutReview = Lead::where('user_id', $userId)
                 ->where('service_id', $service->id)
                 ->whereHas('leadStatus', fn ($q) => $q->where('name', 'done'))
+                ->whereDoesntHave('reviews')
                 ->exists();
 
-            $hasReviewed = Review::where('user_id', $userId)
-                ->where('service_id', $service->id)
-                ->exists();
-
-            $data['can_review'] = $hasCompletedLead && !$hasReviewed;
-            $data['has_reviewed'] = $hasReviewed;
+            $data['can_review'] = $hasCompletedLeadWithoutReview;
+            $data['has_reviewed'] = false;
         }
 
         return response()->json($data);

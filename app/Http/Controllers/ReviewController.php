@@ -55,16 +55,6 @@ class ReviewController extends Controller
             }
         }
 
-        $alreadyReviewed = Review::where('user_id', $userId)
-            ->where('service_id', $serviceId)
-            ->exists();
-
-        if ($alreadyReviewed) {
-            return response()->json([
-                'message' => 'Вы уже оставили отзыв на эту услугу.'
-            ], 422);
-        }
-
         $review = Review::create([
             'user_id' => $userId,
             'service_id' => $serviceId,

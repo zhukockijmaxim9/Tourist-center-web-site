@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { reviewsApi, servicesApi } from '../../api';
+import { servicesApi } from '../../api';
 import Modal from '../../components/Modal';
 import { useNotify } from '../../context/NotifyContext';
 import { getServicePhotoUrl, serviceImageOnError } from '../../utils/serviceCardImage';
@@ -14,8 +14,6 @@ export default function ServiceDetailsModal({
 }) {
     const notify = useNotify();
     const [serviceDetails, setServiceDetails] = useState(null);
-    const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
-    const [submittingReview, setSubmittingReview] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -47,7 +45,7 @@ export default function ServiceDetailsModal({
 
     useEffect(() => {
         if (!isOpen) {
-            setReviewForm({ rating: 5, comment: '' });
+            setServiceDetails(null);
         }
     }, [isOpen]);
 
@@ -55,26 +53,6 @@ export default function ServiceDetailsModal({
         if (!service?.id) return;
         const res = await servicesApi.getOne(service.id);
         setServiceDetails(res.data);
-    };
-
-    const handleReviewSubmit = async (e) => {
-        e.preventDefault();
-        if (!serviceDetails?.id || submittingReview) return;
-
-        setSubmittingReview(true);
-        try {
-            await reviewsApi.create({
-                service_id: serviceDetails.id,
-                ...reviewForm,
-            });
-            notify.success('Спасибо! Ваш отзыв отправлен на модерацию.');
-            setReviewForm({ rating: 5, comment: '' });
-            await reloadDetails();
-        } catch (err) {
-            notify.fromError(err, 'Ошибка при отправке отзыва');
-        } finally {
-            setSubmittingReview(false);
-        }
     };
 
     return (
@@ -162,45 +140,12 @@ export default function ServiceDetailsModal({
                     </div>
 
                     {user && user.role === 'user' && serviceDetails.can_review ? (
-                        <form onSubmit={handleReviewSubmit} className="review-form">
-                            <h5>Оставить отзыв</h5>
-                            <div className="form-group">
-                                <label>Оценка</label>
-                                <div className="star-select">
-                                    {[1, 2, 3, 4, 5].map((value) => (
-                                        <button
-                                            type="button"
-                                            key={value}
-                                            className={`star-btn ${value <= reviewForm.rating ? 'active' : ''}`}
-                                            onClick={() => setReviewForm((current) => ({ ...current, rating: value }))}
-                                        >
-                                            ★
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label>Комментарий</label>
-                                <textarea
-                                    value={reviewForm.comment}
-                                    onChange={(e) => setReviewForm((current) => ({ ...current, comment: e.target.value }))}
-                                    rows={3}
-                                    placeholder="Поделитесь вашим мнением..."
-                                />
-                            </div>
-                            <button type="submit" className="btn btn-primary btn-block" disabled={submittingReview}>
-                                {submittingReview ? 'Отправка...' : 'Отправить отзыв'}
-                            </button>
-                        </form>
-                    ) : null}
-
-                    {user && user.role === 'user' && serviceDetails.has_reviewed ? (
                         <div className="review-notice">
-                            <span>✅</span> Вы уже оставили отзыв на эту услугу. Спасибо!
+                            <span>💬</span> Оставить отзыв можно в <Link href="/dashboard">личном кабинете</Link> по выполненной заявке.
                         </div>
                     ) : null}
 
-                    {user && user.role === 'user' && !serviceDetails.can_review && !serviceDetails.has_reviewed ? (
+                    {user && user.role === 'user' && !serviceDetails.can_review ? (
                         <div className="review-notice">
                             <span>ℹ️</span> Оставить отзыв можно после выполнения заявки на эту услугу.
                         </div>

@@ -1,6 +1,27 @@
-import React, { useEffect, useMemo, useState } from 'react';
+    const handleCancelLead = async (lead) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Отменить заявку?',
+            body: 'Вы уверены? Заявка будет удалена.',
+            confirmText: 'Отменить',
+            danger: true,
+            onConfirm: async () => {
+                setConfirmLoading(true);
+                try {
+                    await leadsApi.delete(lead.id);
+                    setConfirmModal({ isOpen: false });
+                    notify.success('Заявка отменена');
+                    await loadLeads();
+                } catch (err) {
+                    notify.fromError(err, 'Не удалось отменить заявку');
+                } finally {
+                    setConfirmLoading(false);
+                }
+            },
+        });
+    };import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { leadsApi } from '../api';
+import { leadsApi, reviewsApi } from '../api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
@@ -82,19 +103,22 @@ export default function UserDashboard() {
     const handleDelete = async (lead) => {
         setConfirmModal({
             isOpen: true,
-            title: 'Удалить заявку?',
+            title: 'Удалить отзыв?',
             body: 'Вы уверены? Это действие нельзя отменить.',
             confirmText: 'Удалить',
             danger: true,
             onConfirm: async () => {
                 setConfirmLoading(true);
                 try {
-                    await leadsApi.delete(lead.id);
-                    setConfirmModal({ isOpen: false });
-                    notify.success('Заявка удалена');
-                    await loadLeads();
+                    const review = lead.reviews?.[0];
+                    if (review) {
+                        await reviewsApi.delete(review.id);
+                        setConfirmModal({ isOpen: false });
+                        notify.success('Отзыв удалён');
+                        await loadLeads();
+                    }
                 } catch (err) {
-                    notify.fromError(err, 'Не удалось удалить заявку');
+                    notify.fromError(err, 'Не удалось удалить отзыв');
                 } finally {
                     setConfirmLoading(false);
                 }
@@ -309,18 +333,37 @@ export default function UserDashboard() {
                             <DataTable
                                 columns={leadColumns}
                                 data={filteredLeads}
-                                onEdit={leadForm.openEdit}
-                                onDelete={handleDelete}
                                 renderActions={(lead) => (
-                                    lead.status === 'done' && !lead.has_reviewed ? (
-                                        <button
-                                            type="button"
-                                            className="btn btn-sm btn-primary"
-                                            onClick={() => handleOpenReview(lead)}
-                                        >
-                                            Оставить отзыв
-                                        </button>
-                                    ) : null
+                                    <>
+                                        {lead.status === 'new' && (
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-danger"
+                                                onClick={() => handleCancelLead(lead)}
+                                            >
+                                                Отменить
+                                            </button>
+                                        )}
+                                        {lead.status === 'done' && (
+                                            lead.has_reviewed ? (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-sm btn-danger"
+                                                    onClick={() => handleDelete(lead)}
+                                                >
+                                                    Удалить отзыв
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-sm btn-primary"
+                                                    onClick={() => handleOpenReview(lead)}
+                                                >
+                                                    Оставить отзыв
+                                                </button>
+                                            )
+                                        )}
+                                    </>
                                 )}
                             />
                         )}

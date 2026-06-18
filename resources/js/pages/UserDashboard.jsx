@@ -14,7 +14,6 @@ import useServicesCatalog from '../features/services/useServicesCatalog';
 const LEAD_STATUS_RU = {
     new: 'Новая',
     in_progress: 'В работе',
-    confirmed: 'Подтверждена',
     done: 'Выполнено',
     cancelled: 'Отменена',
 };
@@ -126,7 +125,6 @@ export default function UserDashboard() {
         { id: 'all', label: 'Все' },
         { id: 'new', label: LEAD_STATUS_RU.new },
         { id: 'in_progress', label: LEAD_STATUS_RU.in_progress },
-        { id: 'confirmed', label: LEAD_STATUS_RU.confirmed },
         { id: 'done', label: LEAD_STATUS_RU.done },
         { id: 'cancelled', label: LEAD_STATUS_RU.cancelled },
     ];

@@ -54,7 +54,7 @@ export default function LeadBoard({
                         <div className="leads-table-col leads-col-service" title={lead.service?.name || ''}>
                             <span className="leads-table-cell-text">{lead.service?.name || '—'}</span>
                         </div>
-                        <div className="leads-table-col leads-col-manager" title={lead.assigned_to?.name || ''}>
+                        <div className="leads-table-col leads-col-manager" title={lead.assigned_to?.name || ''} onClick={(e) => e.stopPropagation()}>
                             {onAssignManager && (
                                 <select
                                     className="lead-status-select"
